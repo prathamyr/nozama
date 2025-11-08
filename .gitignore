@@ -1,0 +1,59 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dependencies & build artifacts
+node_modules/
+dist/
+build/
+coverage/
+logs/
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Angular cache / artifacts
+.angular/
+.cache/
+!.editorconfig
+
+# IDE / editor junk
+.vscode/
+.idea/
+
+# Lock files (keep if you want consistent installs)
+# comment out if you prefer to keep them versioned
+# package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Web app (frontend)
+apps/web/node_modules/
+apps/web/dist/
+apps/web/build/
+apps/web/.vite/
+apps/web/.next/
+apps/web/.cache/
+apps/web/.nuxt/
+apps/web/.output/
+
+# API (backend)
+apps/api/node_modules/
+apps/api/dist/
+apps/api/build/
+apps/api/coverage/
+apps/api/logs/
+apps/api/tmp/
+
+# Misc env or local overrides
+.envrc
+*.local
+*.env.local
+*.secret
+
+# Git metadata
+.git/
