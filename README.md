@@ -1,1 +1,1 @@
-Pls navigate to **[API Setup Guide](../nozama/Setup.md)**  
+Pls navigate to **[Setup Guide](../nozama/Setup.md)**  
