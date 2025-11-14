@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Product } from './product.model.js'
 
 const AddressSchema = new mongoose.Schema({
   line1: String,
@@ -23,6 +24,7 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   addresses: { type: [AddressSchema], default: [] },
   cards: { type: [CardSchema], default: [] },
+  cart: { type: [Product], default: [] }
 }, { timestamps: true });
 
 export default mongoose.model('User', UserSchema);
