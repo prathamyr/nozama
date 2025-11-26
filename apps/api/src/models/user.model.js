@@ -53,8 +53,12 @@ const userSchema = new mongoose.Schema({
   }],
 
   addresses: [addressSchema],
-  defaultShippingAddressId: { type: Schema.Types.ObjectId, ref: 'Address' },
-  defaultBillingAddressId: { type: Schema.Types.ObjectId, ref: 'Address' },
+  //since there is no collection for address specifically,
+  // for now these will store raw object ids,
+  // will have to find workaround in dao to implement
+  // the logic
+  defaultShippingAddressId: {type: Schema.Types.ObjectId},
+  defaultBillingAddressId: {type: Schema.Types.ObjectId}, 
   paymentMethods: [paymentMethodSchema],
 
 }, { timestamps: true });

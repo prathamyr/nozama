@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const ProductSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
     name: { type: String, required:true, index:true},
     slug: {type:String, required: true, unique:true, lowercase:true}, //url friendly
     category: { type: String, required: true, index:true},
@@ -34,6 +34,6 @@ const ProductSchema = new mongoose.Schema({
 
 // TEXT INDEX (borrowed from geeksforgeeks)
 // This allows you to "Search product by keyword"
-ProductSchema.index({ name: 'text', description: 'text', brand: 'text' });
+productSchema.index({ name: 'text', description: 'text', brand: 'text' });
 
-export default mongoose.model('Product', ProductSchema);
+export default mongoose.model('Product', productSchema);
