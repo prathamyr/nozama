@@ -1,21 +1,22 @@
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
-    name: { type: String, required:true, index:true},
+    name: {type: String, required:true, index:true},
     slug: {type:String, required: true, unique:true, lowercase:true}, //url friendly
-    category: { type: String, required: true, index:true},
-    brand: { type: String, required: true, index:true },
+    category: {type: String, required: true, index:true},
+    brand: {type: String, required: true, index:true },
     description: {type: String, index:true},
-    price: { type: Number, required: true},
+    price: {type: Number, required: true},
 
     // spec map will be key value pairs to
     // store specs for different categories of products
     specs: {type: Map, of:String},
 
-    thumbnailImg: { type: String, required: true },
+    thumbnailImg: {type: String, required: true },
 
     // just in case video hosting is possible;
     imageGallery: [{
+    _id: false,
     url: String,
     type: { type: String, enum: ['image', 'video'], default: 'image' }
     }],

@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 const {Schema} = mongoose;
 
 // HAS TO IMMUTABLE
-const OrderSchema = new mongoose.Schema({
+const orderSchema = new mongoose.Schema({
 
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    user_email: { type: String, required: true, trim: true },
+    userEmail: { type: String, required: true, trim: true },
 
-    items_ordered: [{
+    itemsOrdered: [{
         productId: {type: Schema.Types.ObjectId, ref:'Product', required: true},
         //frozen fields for future reference
         productName: {type: String, required: true},
@@ -55,10 +55,12 @@ const OrderSchema = new mongoose.Schema({
     //for dummy
     paymentDetails: {
         transactionId: { type: String }, // e.g. "TXN_123456789"
-        paymentStatus: { type: String }, // e.g. "Approved"
-        paymentDate: { type: Date }
+        paymentStatus: { 
+            type: String, 
+            enum: ["Approved", "Declined", "Pending", "Refunded", "Failed"] }, 
+        paymentDate: { type: Date },
     },
 }, { timestamps: true });
 
-export default mongoose.model('Order', OrderSchema);
+export default mongoose.model('Order', orderSchema);
 
