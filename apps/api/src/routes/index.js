@@ -8,4 +8,6 @@ router.get('/', (req, res) => {
 
 router.use('/health', require('./health.routes'));
 
+router.use('/cart', require('./cart.routes'));
+
 module.exports = router;
