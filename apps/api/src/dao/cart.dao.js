@@ -1,6 +1,6 @@
 const Cart = require('../models/cart.model');
 
-export default class CartDAO {
+class CartDAO {
 
     static async getCart(cartId) {
         try {
@@ -34,3 +34,5 @@ export default class CartDAO {
         }
     }
 }
+
+module.exports = CartDAO;

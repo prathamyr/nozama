@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 // added db-level validations for each field;
@@ -52,15 +52,11 @@ const userSchema = new mongoose.Schema({
   ref: 'Product',
   }],
 
-  addresses: [addressSchema],
-  //since there is no collection for address specifically,
-  // for now these will store raw object ids,
-  // will have to find workaround in dao to implement
-  // the logic
-  defaultShippingAddressId: {type: Schema.Types.ObjectId},
-  defaultBillingAddressId: {type: Schema.Types.ObjectId}, 
-  paymentMethods: [paymentMethodSchema],
+  shippingAddress: { type: addressSchema },
+  billingAddress: { type: addressSchema},
+
+  paymentMethods: paymentMethodSchema,
 
 }, { timestamps: true });
 
-export default mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);

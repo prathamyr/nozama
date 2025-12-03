@@ -1,4 +1,4 @@
-const CartDAO = require('../dao/cart.dao').default;
+const CartDAO = require('../dao/cart.dao');
 
 exports.getCart = async (req, res) => {
     try {
@@ -21,7 +21,7 @@ exports.updateCart = async (req, res) => {
 exports.createCart = async (req, res) => {
     try {
         const cart = await CartDAO.createCart(req.body.cartId, req.body.items);
-        res.sjon(cart);
+        res.json(cart);
     } catch (e) {
         res.json({error: e.message});
     }
