@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
     name: {type: String, required:true, index:true},
@@ -37,4 +37,4 @@ const productSchema = new mongoose.Schema({
 // This allows you to "Search product by keyword"
 productSchema.index({ name: 'text', description: 'text', brand: 'text' });
 
-export default mongoose.model('Product', productSchema);
+module.exports = mongoose.model('Product', productSchema);

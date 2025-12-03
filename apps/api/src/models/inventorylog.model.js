@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const inventoryLogSchema = new mongoose.Schema({
@@ -16,4 +16,4 @@ const inventoryLogSchema = new mongoose.Schema({
     reason: {type: String},
 }, {timestamps:true});
 
-export default mongoose.model('InventoryLog', inventoryLogSchema);
+module.exports = mongoose.model('InventoryLog', inventoryLogSchema);
