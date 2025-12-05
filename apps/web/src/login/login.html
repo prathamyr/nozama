@@ -5,7 +5,7 @@
         <div class="login-top">
             <mat-form-field class="login-left">
                 <mat-label>First Name</mat-label>
-                <input matInput [formControl]="firstNameFormControl" placeholder="Ex. John">
+                <input matInput [formControl]="firstNameFormControl" placeholder="Ex. John" [(ngModel)]="firstName" name="firstName">
                 @if (firstNameFormControl.hasError('required')) {
                     <mat-error>First name is <strong>required</strong></mat-error>
                 }
@@ -13,7 +13,7 @@
 
             <mat-form-field class="login-right">
                 <mat-label>Last Name</mat-label>
-                <input matInput [formControl]="lastNameFormControl" placeholder="Ex. Doe">
+                <input matInput [formControl]="lastNameFormControl" placeholder="Ex. Doe" [(ngModel)]="lastName" name="lastName">
                 @if (lastNameFormControl.hasError('required')) {
                     <mat-error>Last name is <strong>required</strong></mat-error>
                 }
@@ -24,7 +24,7 @@
     <mat-form-field class="login-bottom">
         <mat-label>Email</mat-label>
         <input type="email" matInput [formControl]="emailFormControl" [errorStateMatcher]="matcher"
-            placeholder="Ex. john.doe@example.com">
+            placeholder="Ex. john.doe@example.com" [(ngModel)]="email" name="email">
         @if (emailFormControl.hasError('email') && !emailFormControl.hasError('required')) {
             <mat-error>Please enter a valid email address</mat-error>
         }
@@ -35,7 +35,7 @@
 
     <mat-form-field class="login-bottom">
         <mat-label>Password</mat-label>
-        <input type="password" matInput [formControl]="passwordFormControl" /> 
+        <input type="password" matInput [formControl]="passwordFormControl" [(ngModel)]="password" name="password"> 
         @if (passwordFormControl.hasError('required')) {
             <mat-error>Password is <strong>required</strong></mat-error>
         }
@@ -48,5 +48,6 @@
     }
 
     <!-- Only enable log in button if all fields are error free -->
-    <button matButton="filled" class="submit" [disabled]="checkError()">{{state}}</button>
+    <button matButton="filled" class="submit" [disabled]="checkError()" (click)="handleClick()">{{state}}</button>
+    <p class="login-error submit" [innerHTML]="loginError"></p>
 </form>
