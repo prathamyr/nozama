@@ -5,33 +5,48 @@ const CartDAO = require("../dao/cart.dao");
 exports.getUsers = async (req, res) => {
     try {
         const users = await UserDAO.getAllUsers();
-        res.json({users: users})
+        res.json({ok: true, users: users})
     } catch (e) {
-        res.json({error: e.message});
+        res.json({ok: false, error: e.message});
     }
 };
 
 exports.loginUser = async (req, res) => {
     try {
         const user = await UserDAO.findUserByEmail(req.body.email);
-        // TODO: Add password verification and JWT token generation
-        res.json({ok: true, user: user});
+        if (user != null) {
+            const authenticated = await bcrypt.compare(req.body.password, user.passwordHash);
+            if (authenticated) {
+                // remove passwordHash before sending
+                const sanitizedUser = user.toObject();
+                delete sanitizedUser.passwordHash;
+                res.json({ok: true, user: sanitizedUser});
+            } else {
+                res.json({ok: false, error: "Incorrect email or password"});
+            }
+        } else {
+            res.json({ok: false, error: "Incorrect email or password"});
+        }
     } catch (e) {
-        res.json({error: e.message});
+        res.json({ok: false, error: e.message});
     }
 };
 
 // need to add JWT functionality!!
 exports.signupUser = async (req, res) => {
-    console.log("endpoint reached successfully");
     try {
         const hash = await bcrypt.hash(req.body.password, 10);
         const user = await UserDAO.createUser(req.body.firstName, req.body.lastName, req.body.email, hash);
 
         const cart = await CartDAO.createCart(user._id, req.body.items);
-        res.json({ok: true, user: user, cart: cart});
+        
+        // remove passwordHash before sending
+        const sanitizedUser = user.toObject();
+        delete sanitizedUser.passwordHash;
+        
+        res.json({ok: true, user: sanitizedUser, cart: cart});
     } catch (e) {
-        res.json({error: e.message});
+        res.json({ok: false, error: e.message});
     }
 };
 

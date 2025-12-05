@@ -13,7 +13,6 @@ class UserDAO {
                 passwordHash: password
             });
             await user.save();
-            console.log("user created successfully");
             return user;
         } catch (e) {
             throw new Error(`Unable to register user: ${e.message}`);

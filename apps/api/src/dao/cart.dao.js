@@ -10,13 +10,21 @@ class CartDAO {
         }
     }
 
-    static async updateCart(cartId, updateData) {
+    static async updateCart(cartId, productId, type) {
         try {
-            return await Cart.findByIdAndUpdate(
-                cartId,
-                { $set: updateData },
-                { new: true, runValidators: true }
-            );
+            if (type === "add") {
+                return await Cart.findByIdAndUpdate(
+                    cartId,
+                    { $inc: { "items.$[elem].quantity": 1 } },
+                    { arrayFilters: [{ "elem.productId": productId }], new: true, runValidators: true }
+                )
+            } else {
+                return await Cart.findByIdAndUpdate(
+                    cartId,
+                    { $inc: { "items.$[elem].quantyt": -1 } },
+                    { arrayFilters: [{ "elem.productId": productId }], new: true, runValidators: true }
+                )
+            }
         } catch (e) {
             throw new Error(`Error updating cart: ${e.message}`);
         }
