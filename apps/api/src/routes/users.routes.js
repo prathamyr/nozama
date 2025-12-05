@@ -4,7 +4,7 @@ const { getUsers, loginUser, signupUser, updateAddress } = require('../controlle
 
 router.post('/', getUsers);
 
-router.get('/login', loginUser);
+router.post('/login', loginUser);
 
 router.post('/signup', signupUser);
 

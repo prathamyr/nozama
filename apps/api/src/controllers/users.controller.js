@@ -17,10 +17,11 @@ exports.loginUser = async (req, res) => {
         if (user != null) {
             const authenticated = await bcrypt.compare(req.body.password, user.passwordHash);
             if (authenticated) {
+                const cart = await CartDAO.getCartByUser(user._id);
                 // remove passwordHash before sending
                 const sanitizedUser = user.toObject();
                 delete sanitizedUser.passwordHash;
-                res.json({ok: true, user: sanitizedUser});
+                res.json({ok: true, user: sanitizedUser, cart: cart});
             } else {
                 res.json({ok: false, error: "Incorrect email or password"});
             }
@@ -28,7 +29,7 @@ exports.loginUser = async (req, res) => {
             res.json({ok: false, error: "Incorrect email or password"});
         }
     } catch (e) {
-        res.json({ok: false, error: e.message});
+        res.json({ok: false, error: "Incorrect email or password"});
     }
 };
 
