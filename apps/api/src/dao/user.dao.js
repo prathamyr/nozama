@@ -1,13 +1,19 @@
 const User = require('../models/user.model');
 
 // simple and not-bloated
-export default class UserDAO {
+class UserDAO {
     
     //Create a new user (Registration)
-    static async createUser(userData) {
+    static async createUser(firstName, lastName, email, password) {
         try {
-            const user = new User(userData);
-            return await user.save();
+            const user = new User({
+                firstname: firstName,
+                lastname: lastName,
+                email: email,
+                passwordHash: password
+            });
+            await user.save();
+            return user;
         } catch (e) {
             throw new Error(`Unable to register user: ${e.message}`);
         }
@@ -50,46 +56,15 @@ export default class UserDAO {
     
     // ----------------------------------------------------------------------
 
-    // ADDRESS MANAGEMENT (Complex Array Logic)
-
-    
-    //Add a new address to the list
-    static async addAddress(userId, addressData) {
-        try {
-            return await User.findByIdAndUpdate(
-                userId,
-                { $push: { addresses: addressData } }, // Appends to array
-                { new: true, runValidators: true }
-            );
-        } catch (e) {
-            throw new Error(`Error adding address: ${e.message}`);
-        }
-    }
-
-    
-    //Remove an address by its _id
-    static async removeAddress(userId, addressId) {
-        try {
-            return await User.findByIdAndUpdate(
-                userId,
-                { $pull: { addresses: { _id: addressId } } }, // Removes specific item
-                { new: true }
-            );
-        } catch (e) {
-            throw new Error(`Error removing address: ${e.message}`);
-        }
-    }
-
-    
+    // ADDRESS MANAGEMENT (Complex Array Logic)    
     //Set default billing or shipping address
-    static async setDefaultAddress(userId, addressId, type) {
+    static async setDefaultAddress(userId, type, addressInfo) {
         try {
-            const updateField = type === 'billing' ? 'defaultBillingAddressId' : 'defaultShippingAddressId';
+            const updateField = type === 'billing' ? 'billingAddress' : 'shippingAddressId';
             
             return await User.findByIdAndUpdate(
                 userId,
-                { [updateField]: addressId },
-                { new: true }
+                { [updateField]: addressInfo }
             );
         } catch (e) {
             throw new Error(`Error setting default address: ${e.message}`);
@@ -113,3 +88,5 @@ export default class UserDAO {
         }
     }
 }
+
+module.exports = UserDAO;

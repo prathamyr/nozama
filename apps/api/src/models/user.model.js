@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 // added db-level validations for each field;
@@ -7,7 +7,7 @@ const {Schema} = mongoose;
 Reason to update: '_id: false' needed to be removed because addresses need to be edited
 */
 const addressSchema = new mongoose.Schema({
-  type: {
+  addressType: {
     type: String, 
     enum:['billing', 'shipping', 'both'], 
     default: 'both', 
@@ -35,8 +35,8 @@ const paymentMethodSchema = new mongoose.Schema({
 
 
 const userSchema = new mongoose.Schema({
-  firstname: { type: String, required: true},
-  lastname: {type: String, required: true},
+  firstname: { type: String, required: true, trim:true},
+  lastname: {type: String, required: true, trim:true},
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   passwordHash: { type: String, required: true }, // store hash, not plaintext
 
@@ -48,15 +48,15 @@ const userSchema = new mongoose.Schema({
   },
 
   wishlist: [{
-  type: Schema.Types.ObjectID,
+  type: Schema.Types.ObjectId,
   ref: 'Product',
   }],
 
-  addresses: [addressSchema],
-  defaultShippingAddressId: { type: Schema.Types.ObjectId, ref: 'Address' },
-  defaultBillingAddressId: { type: Schema.Types.ObjectId, ref: 'Address' },
-  paymentMethods: [paymentMethodSchema],
+  shippingAddress: { type: addressSchema },
+  billingAddress: { type: addressSchema},
+
+  paymentMethods: paymentMethodSchema,
 
 }, { timestamps: true });
 
-export default mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);
