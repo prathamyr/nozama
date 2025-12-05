@@ -10,6 +10,14 @@ class CartDAO {
         }
     }
 
+    static async getCartByUser(userId) {
+        try {
+            return await Cart.findOne({ userId });
+        } catch (e) {
+            throw new Error(`Error retrieving cart: ${e.message}`);
+        }
+    }
+
     static async updateCart(cartId, productId, type) {
         try {
             if (type === "add") {
