@@ -10,12 +10,12 @@ class CartDAO {
     // ---------------------------------------------------------
 
     // Get active cart (open) for user or guest
-    static async getActiveCart({ userId, guestSessionId }) {
+    static async getActiveCart(userId, cartId) {
         try {
             const query = { status: 'open' };
 
             if (userId) query.userId = userId;
-            else query.guestSessionId = guestSessionId;
+            else query._id = cartId;
 
             return await Cart.findOne(query).populate('items.productId');
         } catch (e) {
@@ -57,7 +57,7 @@ class CartDAO {
             );
 
             if (existingItem) {
-                existingItem.quantity += quantity;
+                existingItem.quantity = quantity;
             } else {
                 cart.items.push({ productId, quantity });
             }

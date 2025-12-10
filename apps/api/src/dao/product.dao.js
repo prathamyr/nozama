@@ -90,6 +90,17 @@ class ProductDAO {
         }
     }
 
+    static async updateQuantity(productId, quantity) {
+        try {
+            return await Product.findByIdAndUpdate(
+                productId,
+                { $set: { stockQuantity: quantity } }
+            );
+        } catch (e) {
+            throw new Error(`Error updating quantity: ${e.message}`);
+        }
+    }
+
     // Soft delete (isActive = false)
     static async deactivateProduct(productId) {
         try {
