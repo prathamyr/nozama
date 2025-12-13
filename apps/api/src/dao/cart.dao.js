@@ -28,14 +28,10 @@ class CartDAO {
     // CART CREATION
     // ---------------------------------------------------------
 
-    static async createCart({ userId, guestSessionId }) {
+    static async createCart(userId) {
         try {
-            const cart = new Cart({
-                userId,
-                guestSessionId,
-                items: []
-            });
-
+            const cart = new Cart({userId});
+            
             return await cart.save();
         } catch (e) {
             throw new Error(`Error creating cart: ${e.message}`);
