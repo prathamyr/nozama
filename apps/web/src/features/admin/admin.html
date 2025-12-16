@@ -1,0 +1,489 @@
+<!-- admin.html -->
+<div class="bg-white min-h-full">
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    
+    <!-- Header -->
+    <div class="border-b border-gray-200 pb-6 mb-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Admin Dashboard</h1>
+      <p class="mt-2 text-sm text-gray-600">Welcome, {{ currentUser?.firstname }}</p>
+    </div>
+
+    <!-- Messages -->
+    @if (successMessage) {
+      <div class="mb-4 rounded-md bg-green-50 p-4 border border-green-200">
+        <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+      </div>
+    }
+    
+    @if (errorMessage) {
+      <div class="mb-4 rounded-md bg-red-50 p-4 border border-red-200">
+        <p class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+      </div>
+    }
+
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="-mb-px flex space-x-8">
+        <button (click)="switchTab('orders')"
+                [class.border-blue-500]="activeTab === 'orders'"
+                [class.text-blue-600]="activeTab === 'orders'"
+                [class.border-transparent]="activeTab !== 'orders'"
+                [class.text-gray-500]="activeTab !== 'orders'"
+                class="border-b-2 py-4 px-1 text-sm font-medium hover:text-gray-700 hover:border-gray-300">
+          Orders
+        </button>
+        <button (click)="switchTab('users')"
+                [class.border-blue-500]="activeTab === 'users'"
+                [class.text-blue-600]="activeTab === 'users'"
+                [class.border-transparent]="activeTab !== 'users'"
+                [class.text-gray-500]="activeTab !== 'users'"
+                class="border-b-2 py-4 px-1 text-sm font-medium hover:text-gray-700 hover:border-gray-300">
+          Users
+        </button>
+        <button (click)="switchTab('inventory')"
+                [class.border-blue-500]="activeTab === 'inventory'"
+                [class.text-blue-600]="activeTab === 'inventory'"
+                [class.border-transparent]="activeTab !== 'inventory'"
+                [class.text-gray-500]="activeTab !== 'inventory'"
+                class="border-b-2 py-4 px-1 text-sm font-medium hover:text-gray-700 hover:border-gray-300">
+          Inventory
+        </button>
+        <button (click)="switchTab('analytics')"
+                [class.border-blue-500]="activeTab === 'analytics'"
+                [class.text-blue-600]="activeTab === 'analytics'"
+                [class.border-transparent]="activeTab !== 'analytics'"
+                [class.text-gray-500]="activeTab !== 'analytics'"
+                class="border-b-2 py-4 px-1 text-sm font-medium hover:text-gray-700 hover:border-gray-300">
+          Analytics
+        </button>
+      </nav>
+    </div>
+
+    <!-- ORDERS TAB -->
+    @if (activeTab === 'orders') {
+      <div>
+        <!-- Filters -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 class="text-sm font-medium text-gray-900 mb-3">Filter Orders</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select [(ngModel)]="orderFilters.status" (change)="applyOrderFilters()"
+                    class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="failed">Failed</option>
+            </select>
+            <input type="date" [(ngModel)]="orderFilters.dateFrom" (change)="applyOrderFilters()"
+                   placeholder="From Date"
+                   class="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            <input type="date" [(ngModel)]="orderFilters.dateTo" (change)="applyOrderFilters()"
+                   placeholder="To Date"
+                   class="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+            <button (click)="clearOrderFilters()"
+                    class="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="bg-white shadow overflow-hidden rounded-lg">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              @for (order of filteredOrders; track order._id) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ order._id.substring(0, 8) }}...</td>
+                  <td class="px-6 py-4 text-sm text-gray-900">{{ order.createdAt | date:'short' }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-900">{{ order.userEmail }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-900">${{ order.totalAmount.toFixed(2) }}</td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                          [class.bg-yellow-100]="order.orderStatus === 'pending'"
+                          [class.text-yellow-700]="order.orderStatus === 'pending'"
+                          [class.bg-green-100]="order.orderStatus === 'paid'"
+                          [class.text-green-700]="order.orderStatus === 'paid'"
+                          [class.bg-red-100]="order.orderStatus === 'failed'"
+                          [class.text-red-700]="order.orderStatus === 'failed'">
+                      {{ order.orderStatus }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                          [class.bg-green-100]="order.paymentDetails?.paymentStatus === 'Approved'"
+                          [class.text-green-700]="order.paymentDetails?.paymentStatus === 'Approved'"
+                          [class.bg-red-100]="order.paymentDetails?.paymentStatus === 'Declined'"
+                          [class.text-red-700]="order.paymentDetails?.paymentStatus === 'Declined'">
+                      {{ order.paymentDetails?.paymentStatus }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <button (click)="selectOrder(order)"
+                            class="text-blue-600 hover:text-blue-900 mr-2">View</button>
+                    @if (order.paymentDetails?.paymentStatus === 'Declined') {
+                      <button (click)="approveDeclinedPayment(order._id)"
+                              class="text-green-600 hover:text-green-900">Approve</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          
+          @if (filteredOrders.length === 0) {
+            <div class="text-center py-12">
+              <p class="text-gray-500">No orders found</p>
+            </div>
+          }
+        </div>
+
+        <!-- Order Details Modal -->
+        @if (selectedOrder) {
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <h3 class="text-lg font-medium mb-4">Order Details</h3>
+              
+              <div class="space-y-4">
+                <div>
+                  <p class="text-sm text-gray-500">Order ID</p>
+                  <p class="font-medium">{{ selectedOrder._id }}</p>
+                </div>
+                
+                <div>
+                  <p class="text-sm text-gray-500">Customer</p>
+                  <p class="font-medium">{{ selectedOrder.userEmail }}</p>
+                </div>
+                
+                <div>
+                  <p class="text-sm text-gray-500">Items Ordered</p>
+                  <ul class="mt-2 space-y-2">
+                    @for (item of selectedOrder.itemsOrdered; track item.productId) {
+                      <li class="flex justify-between text-sm">
+                        <span>{{ item.productName }} x{{ item.quantity }}</span>
+                        <span>${{ (item.productPrice * item.quantity).toFixed(2) }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+                
+                <div class="border-t pt-4">
+                  <div class="flex justify-between text-sm mb-1">
+                    <span>Subtotal</span>
+                    <span>${{ selectedOrder.subtotal.toFixed(2) }}</span>
+                  </div>
+                  <div class="flex justify-between text-sm mb-1">
+                    <span>Tax</span>
+                    <span>${{ selectedOrder.taxPrice.toFixed(2) }}</span>
+                  </div>
+                  <div class="flex justify-between text-sm mb-1">
+                    <span>Shipping</span>
+                    <span>${{ selectedOrder.shippingPrice.toFixed(2) }}</span>
+                  </div>
+                  <div class="flex justify-between font-medium">
+                    <span>Total</span>
+                    <span>${{ selectedOrder.totalAmount.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button (click)="selectedOrder = null"
+                      class="mt-6 w-full bg-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                Close
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- USERS TAB -->
+    @if (activeTab === 'users') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Users List -->
+        <div class="lg:col-span-1">
+          <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 border-b">
+              <h3 class="text-sm font-medium">All Users</h3>
+            </div>
+            <ul class="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+              @for (user of users; track user._id) {
+                <li (click)="selectUser(user)"
+                    [class.bg-blue-50]="selectedUser?._id === user._id"
+                    class="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                  <p class="text-sm font-medium text-gray-900">{{ user.firstname }} {{ user.lastname }}</p>
+                  <p class="text-xs text-gray-500">{{ user.email }}</p>
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mt-1"
+                        [class.bg-yellow-100]="user.role === 'admin'"
+                        [class.text-yellow-700]="user.role === 'admin'"
+                        [class.bg-gray-100]="user.role !== 'admin'"
+                        [class.text-gray-700]="user.role !== 'admin'">
+                    {{ user.role }}
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- User Details -->
+        <div class="lg:col-span-2">
+          @if (selectedUser) {
+            <div class="bg-white shadow rounded-lg p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-medium">User Details</h3>
+                @if (!userEditMode) {
+                  <button (click)="editUser()"
+                          class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                    Edit
+                  </button>
+                }
+              </div>
+
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">First Name</label>
+                    <input type="text" [(ngModel)]="selectedUser.firstname" [disabled]="!userEditMode"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                    <input type="text" [(ngModel)]="selectedUser.lastname" [disabled]="!userEditMode"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Email</label>
+                  <input type="email" [(ngModel)]="selectedUser.email" [disabled]="!userEditMode"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Role</label>
+                  <input type="text" [value]="selectedUser.role" disabled
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-gray-100" />
+                </div>
+
+                @if (userEditMode) {
+                  <div class="flex gap-2 pt-4">
+                    <button (click)="saveUser()"
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                      Save Changes
+                    </button>
+                    <button (click)="cancelUserEdit()"
+                            class="flex-1 bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
+                      Cancel
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="bg-white shadow rounded-lg p-12 text-center">
+              <p class="text-gray-500">Select a user to view details</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- INVENTORY TAB -->
+    @if (activeTab === 'inventory') {
+      <div>
+        <div class="mb-4 flex justify-between items-center">
+          <h2 class="text-lg font-medium">Products</h2>
+          <button (click)="showNewProductForm()"
+                  class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+            Add New Product
+          </button>
+        </div>
+
+        <!-- New Product Form -->
+        @if (newProductMode) {
+          <div class="mb-6 bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium mb-4">Create New Product</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <input type="text" [(ngModel)]="newProduct.name" placeholder="Product Name *"
+                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
+              <input type="text" [(ngModel)]="newProduct.description" placeholder="Description"
+                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
+              <input type="text" [(ngModel)]="newProduct.category" placeholder="Category"
+                     class="rounded-md border border-gray-300 px-3 py-2" />
+              <input type="text" [(ngModel)]="newProduct.brand" placeholder="Brand"
+                     class="rounded-md border border-gray-300 px-3 py-2" />
+              <input type="number" [(ngModel)]="newProduct.price" placeholder="Price"
+                     class="rounded-md border border-gray-300 px-3 py-2" />
+              <input type="number" [(ngModel)]="newProduct.stockQuantity" placeholder="Stock Quantity"
+                     class="rounded-md border border-gray-300 px-3 py-2" />
+              <input type="text" [(ngModel)]="newProduct.thumbnailImg" placeholder="Image URL *"
+                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button (click)="createProduct()"
+                      class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                Create Product
+              </button>
+              <button (click)="cancelProductEdit()"
+                      class="flex-1 bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (product of products; track product._id) {
+            <div (click)="selectProduct(product)"
+                 class="bg-white shadow rounded-lg p-4 hover:shadow-lg cursor-pointer">
+              <img [src]="product.thumbnailImg" [alt]="product.name"
+                   class="w-full h-32 object-cover rounded mb-3" />
+              <h3 class="font-medium text-sm truncate">{{ product.name }}</h3>
+              <p class="text-xs text-gray-500">{{ product.brand }}</p>
+              <div class="flex justify-between items-center mt-2">
+                <span class="font-bold text-sm">${{ product.price }}</span>
+                <span class="text-xs"
+                      [class.text-green-600]="product.stockQuantity > 10"
+                      [class.text-yellow-600]="product.stockQuantity > 0 && product.stockQuantity <= 10"
+                      [class.text-red-600]="product.stockQuantity === 0">
+                  Stock: {{ product.stockQuantity }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Product Edit Modal -->
+        @if (selectedProduct && !newProductMode) {
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+              <h3 class="text-lg font-medium mb-4">Product Details</h3>
+              
+              @if (!productEditMode) {
+                <!-- View Mode -->
+                <div class="space-y-3">
+                  <div>
+                    <p class="text-sm text-gray-500">Name</p>
+                    <p class="font-medium">{{ selectedProduct.name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-500">Price</p>
+                    <p class="font-medium">${{ selectedProduct.price }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-500">Stock</p>
+                    <p class="font-medium">{{ selectedProduct.stockQuantity }}</p>
+                  </div>
+                  
+                  <!-- Stock Update -->
+                  <div class="border-t pt-4">
+                    <p class="text-sm font-medium mb-2">Update Stock</p>
+                    <div class="flex gap-2">
+                      <input type="number" [(ngModel)]="stockUpdate.quantity" placeholder="New Quantity"
+                             class="flex-1 rounded-md border border-gray-300 px-3 py-2" />
+                      <button (click)="updateStock()"
+                              class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        Update
+                      </button>
+                    </div>
+                    <input type="text" [(ngModel)]="stockUpdate.reason" placeholder="Reason (optional)"
+                           class="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+                  </div>
+
+                  <div class="flex gap-2 pt-4">
+                    <button (click)="editProduct()"
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                      Edit Product
+                    </button>
+                    <button (click)="selectedProduct = null"
+                            class="flex-1 bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <!-- Edit Mode -->
+                <div class="space-y-3">
+                  <input type="text" [(ngModel)]="selectedProduct.name" placeholder="Name"
+                         class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                  <input type="text" [(ngModel)]="selectedProduct.description" placeholder="Description"
+                         class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                  <input type="number" [(ngModel)]="selectedProduct.price" placeholder="Price"
+                         class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                  <input type="text" [(ngModel)]="selectedProduct.thumbnailImg" placeholder="Image URL"
+                         class="w-full rounded-md border border-gray-300 px-3 py-2" />
+
+                  <div class="flex gap-2 pt-4">
+                    <button (click)="saveProduct()"
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                      Save Changes
+                    </button>
+                    <button (click)="cancelProductEdit()"
+                            class="flex-1 bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ANALYTICS TAB -->
+    @if (activeTab === 'analytics') {
+      <div>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-medium">Sales Analytics</h2>
+          <button (click)="exportSalesReport()"
+                  class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+            Export Report (CSV)
+          </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white shadow rounded-lg p-6">
+            <p class="text-sm text-gray-500">Total Revenue</p>
+            <p class="text-3xl font-bold text-gray-900">${{ salesStats.totalRevenue.toFixed(2) }}</p>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6">
+            <p class="text-sm text-gray-500">Total Orders</p>
+            <p class="text-3xl font-bold text-gray-900">{{ salesStats.totalOrders }}</p>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6">
+            <p class="text-sm text-gray-500">Avg Order Value</p>
+            <p class="text-3xl font-bold text-gray-900">${{ salesStats.avgOrderValue.toFixed(2) }}</p>
+          </div>
+          <div class="bg-white shadow rounded-lg p-6">
+            <p class="text-sm text-gray-500">Recent Orders (7d)</p>
+            <p class="text-3xl font-bold text-gray-900">{{ salesStats.recentOrders }}</p>
+          </div>
+        </div>
+
+        <!-- Top Product -->
+        <div class="bg-white shadow rounded-lg p-6">
+          <h3 class="text-lg font-medium mb-2">Top Selling Product</h3>
+          <p class="text-2xl font-bold text-blue-600">{{ salesStats.topProduct }}</p>
+        </div>
+      </div>
+    }
+
+  </main>
+</div>

@@ -10,12 +10,16 @@ class CartDAO {
     // ---------------------------------------------------------
 
     // Get active cart (open) for user or guest
-    static async getActiveCart(userId, cartId) {
+    static async getActiveCart(userId, guestSessionId) {
         try {
             const query = { status: 'open' };
 
-            if (userId) query.userId = userId;
-            else query._id = cartId;
+            if (userId) {
+                query.userId = userId;
+            } else {
+                if (!guestSessionId) return null;
+                query.guestSessionId = guestSessionId;
+            }
 
             return await Cart.findOne(query).populate('items.productId');
         } catch (e) {
@@ -28,13 +32,29 @@ class CartDAO {
     // CART CREATION
     // ---------------------------------------------------------
 
-    static async createCart(userId) {
+    static async createCart(userId, guestSessionId = null) {
         try {
-            const cart = new Cart({userId});
-            
+            const cart = new Cart({ userId, guestSessionId });
             return await cart.save();
         } catch (e) {
             throw new Error(`Error creating cart: ${e.message}`);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // CLEAR CART
+    // ---------------------------------------------------------
+    
+    // Clear all items from cart
+    static async clearCart(cartId) {
+        try {
+            return await Cart.findByIdAndUpdate(
+                cartId,
+                { $set: { items: [] } },
+                { new: true }
+            ).populate('items.productId'); // ✅ FIX: Populate after clearing
+        } catch (e) {
+            throw new Error(`Error clearing cart: ${e.message}`);
         }
     }
 
@@ -43,6 +63,7 @@ class CartDAO {
     // CART UPDATES (ADD / REMOVE / UPDATE ITEMS)
     // ---------------------------------------------------------
 
+    // Add or update item in cart
     static async addOrUpdateItem(cartId, productId, quantity) {
         try {
             const cart = await Cart.findById(cartId);
@@ -53,12 +74,16 @@ class CartDAO {
             );
 
             if (existingItem) {
-                existingItem.quantity = quantity;
+                existingItem.quantity += Number(quantity);
             } else {
                 cart.items.push({ productId, quantity });
             }
 
-            return await cart.save();
+            await cart.save();
+            
+            // ✅ FIX: Populate the saved cart before returning
+            await cart.populate('items.productId');
+            return cart;
         } catch (e) {
             throw new Error(`Error updating cart: ${e.message}`);
         }
@@ -70,7 +95,7 @@ class CartDAO {
                 cartId,
                 { $pull: { items: { productId } } },
                 { new: true }
-            );
+            ).populate('items.productId'); // ✅ FIX: Populate after removing
         } catch (e) {
             throw new Error(`Error removing item: ${e.message}`);
         }
@@ -82,7 +107,7 @@ class CartDAO {
                 { _id: cartId, "items.productId": productId },
                 { $set: { "items.$.quantity": quantity } },
                 { new: true }
-            );
+            ).populate('items.productId'); // ✅ FIX: Populate after updating
         } catch (e) {
             throw new Error(`Error updating quantity: ${e.message}`);
         }

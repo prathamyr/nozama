@@ -59,6 +59,31 @@ class UserDAO {
         }
     }
 
+    // Add payment method
+    static async addPaymentMethod(userId, paymentData) {
+        try {
+            return await User.findByIdAndUpdate(
+                userId,
+                { $push: { paymentMethods: paymentData } },
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error adding payment method: ${e.message}`);
+        }
+    }
+
+    // Remove payment method
+    static async removePaymentMethod(userId, paymentMethodId) {
+        try {
+            return await User.findByIdAndUpdate(
+                userId,
+                { $pull: { paymentMethods: { _id: paymentMethodId } } },
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error removing payment method: ${e.message}`);
+        }
+    }
 
     // ---------------------------------------------------------
     // ADDRESS MANAGEMENT

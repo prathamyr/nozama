@@ -1,8 +1,0 @@
-<app-navbar></app-navbar>
-
-@for (product of products; track product._id) {
-    <img src="/laptops/{{ product.name }}/{{ product.thumbnailImg }}" />
-    @for (img of product.imageGallery; track img.url) {
-        <img src="/laptops/{{ product.name }}/{{ img.url }}" />
-    }
-}

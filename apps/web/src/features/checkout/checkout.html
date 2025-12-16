@@ -1,0 +1,247 @@
+<!-- checkout.html -->
+<div class="bg-white min-h-full">
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    
+    <!-- Page Header -->
+    <div class="border-b border-gray-200 pb-6 mb-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Checkout</h1>
+    </div>
+
+    @if (cart) {
+      <div class="lg:grid lg:grid-cols-12 lg:gap-x-12">
+        
+        <!-- Left Column - Forms -->
+        <div class="lg:col-span-7">
+          
+          <!-- Shipping Address -->
+          <div class="mb-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Shipping Address</h2>
+            <div class="space-y-4">
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Full Name *</label>
+                <input type="text" 
+                       [(ngModel)]="shippingAddress.fullName"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                       placeholder="John Doe" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                <input type="text" 
+                       [(ngModel)]="shippingAddress.line1"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                       placeholder="123 Main St" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Address Line 2</label>
+                <input type="text" 
+                       [(ngModel)]="shippingAddress.line2"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                       placeholder="Apt 4B (optional)" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">City *</label>
+                  <input type="text" 
+                         [(ngModel)]="shippingAddress.city"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                         placeholder="Toronto" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Province *</label>
+                  <input type="text" 
+                         [(ngModel)]="shippingAddress.state"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                         placeholder="ON" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Postal Code *</label>
+                  <input type="text" 
+                         [(ngModel)]="shippingAddress.postalCode"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                         placeholder="M5V 2T6" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Country *</label>
+                  <input type="text" 
+                         [(ngModel)]="shippingAddress.country"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-gray-100"
+                         readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Billing Address -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-medium text-gray-900">Billing Address</h2>
+              <label class="flex items-center text-sm">
+                <input type="checkbox" 
+                       [(ngModel)]="sameAsShipping"
+                       (change)="toggleSameAsShipping()"
+                       class="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600" />
+                Same as shipping
+              </label>
+            </div>
+
+            @if (!sameAsShipping) {
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Full Name *</label>
+                  <input type="text" 
+                         [(ngModel)]="billingAddress.fullName"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                  <input type="text" 
+                         [(ngModel)]="billingAddress.line1"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Address Line 2</label>
+                  <input type="text" 
+                         [(ngModel)]="billingAddress.line2"
+                         class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">City *</label>
+                    <input type="text" 
+                           [(ngModel)]="billingAddress.city"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Province *</label>
+                    <input type="text" 
+                           [(ngModel)]="billingAddress.state"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Postal Code *</label>
+                    <input type="text" 
+                           [(ngModel)]="billingAddress.postalCode"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Country *</label>
+                    <input type="text" 
+                           [(ngModel)]="billingAddress.country"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-gray-100"
+                           readonly />
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Payment Information -->
+          <div class="mb-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Payment Information</h2>
+            <div class="space-y-4">
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Card Brand *</label>
+                <select [(ngModel)]="billingInfo.cardBrand"
+                        class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                  <option value="Visa">Visa</option>
+                  <option value="Mastercard">Mastercard</option>
+                  <option value="Amex">American Express</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Card Number *</label>
+                <input type="text" 
+                       [(ngModel)]="billingInfo.cardNumber"
+                       class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                       placeholder="" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          @if (errorMessage) {
+            <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
+              <p class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+            </div>
+          }
+        </div>
+
+        <!-- Right Column - Order Summary -->
+        <div class="lg:col-span-5">
+          <div class="rounded-lg bg-gray-50 px-6 py-6 border border-gray-200 sticky top-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Order Summary</h2>
+            
+            <!-- Cart Items -->
+            <ul class="divide-y divide-gray-200 mb-4">
+              @for (item of cart.items; track item.productId._id) {
+                <li class="flex py-3">
+                  <img [src]="item.productId.thumbnailImg" 
+                       [alt]="item.productId.name"
+                       class="h-16 w-16 rounded object-cover" />
+                  <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ item.productId.name }}</p>
+                    <p class="text-xs text-gray-500">Qty: {{ item.quantity }}</p>
+                    <p class="text-sm font-medium text-gray-900 mt-1">${{ (item.productId.price * item.quantity).toFixed(2) }}</p>
+                  </div>
+                </li>
+              }
+            </ul>
+
+            <!-- Totals -->
+            <div class="space-y-2 border-t border-gray-200 pt-4">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal</span>
+                <span class="font-medium">${{ totals.subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Tax (13%)</span>
+                <span class="font-medium">${{ totals.tax.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Shipping</span>
+                <span class="font-medium">
+                  @if (totals.shipping === 0) {
+                    <span class="text-green-600">FREE</span>
+                  } @else {
+                    <span>${{ totals.shipping.toFixed(2) }}</span>
+                  }
+                </span>
+              </div>
+              <div class="flex justify-between border-t border-gray-200 pt-2 text-base font-medium">
+                <span>Total</span>
+                <span>${{ totals.total.toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <!-- Place Order Button -->
+            <button (click)="placeOrder()"
+                    [disabled]="isProcessing || !isFormValid()"
+                    class="mt-6 w-full rounded-md bg-blue-600 px-6 py-3 text-base font-medium text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+              @if (isProcessing) {
+                <span>Processing...</span>
+              } @else {
+                <span>Place Order</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+  </main>
+</div>

@@ -33,7 +33,7 @@ class ProductDAO {
     // Filtering products by category, brand, price range
     static async filterProducts(filters = {}) {
         try {
-            const query = {};
+            const query = { isActive: true };
 
             if (filters.category) query.category = filters.category;
             if (filters.brand) query.brand = filters.brand;
@@ -46,6 +46,19 @@ class ProductDAO {
             return await Product.find(query);
         } catch (e) {
             throw new Error(`Error filtering products: ${e.message}`);
+        }
+    }
+
+    // Sort products by price or name
+    static async getProductsSorted(sortBy = 'price', order = 'asc') {
+        try {
+            const sortOrder = order === 'asc' ? 1 : -1;
+            const sortField = sortBy === 'name' ? 'name' : 'price';
+            
+            return await Product.find({ isActive: true })
+                .sort({ [sortField]: sortOrder });
+        } catch (e) {
+            throw new Error(`Error sorting products: ${e.message}`);
         }
     }
 

@@ -50,6 +50,24 @@ class OrderDAO {
         }
     }
 
+    static async filterOrders(filters = {}) {
+        try {
+            const query = {};
+            
+            if (filters.userId) query.user = filters.userId;
+            if (filters.productId) query['itemsOrdered.productId'] = filters.productId;
+            if (filters.startDate || filters.endDate) {
+                query.createdAt = {};
+                if (filters.startDate) query.createdAt.$gte = new Date(filters.startDate);
+                if (filters.endDate) query.createdAt.$lte = new Date(filters.endDate);
+            }
+            
+            return await Order.find(query).sort({ createdAt: -1 }).populate('user');
+        } catch (e) {
+            throw new Error(`Error filtering orders: ${e.message}`);
+        }
+    }
+
 
     // ---------------------------------------------------------
     // PAYMENT STATUS UPDATES

@@ -4,7 +4,7 @@ const productSchema = new mongoose.Schema({
     name: {type: String, required:true, index:true},
     slug: {type:String, required: true, unique:true, lowercase:true}, //url friendly
     category: {type: String, required: true, index:true},
-    brand: [{type: String, required: true, index:true }],
+    brand: {type: String, required: true, index:true},
     description: {type: String, index:true},
     price: {type: Number, required: true},
 
