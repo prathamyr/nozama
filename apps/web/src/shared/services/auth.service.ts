@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -8,8 +8,18 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
   private apiUrl = environment.serverUrl;
+  
+  // Observable user for components to subscribe to
+  private userSubject = new BehaviorSubject<any>(this.getCurrentUserFromStorage());
+  public user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient) {}
+  
+  // Helper to get user from localStorage (used for initial state)
+  private getCurrentUserFromStorage(): any {
+    const user = localStorage.getItem('currentUser');
+    return user ? JSON.parse(user) : null;
+  }
 
   // Sign up new user
   signup(data: any): Observable<any> {
@@ -35,18 +45,19 @@ export class AuthService {
 
   // Get current user from localStorage
   getCurrentUser(): any {
-    const user = localStorage.getItem('currentUser');
-    return user ? JSON.parse(user) : null;
+    return this.userSubject.value;
   }
 
   // Save user to localStorage
   setCurrentUser(user: any): void {
     localStorage.setItem('currentUser', JSON.stringify(user));
+    this.userSubject.next(user);
   }
 
   // Clear user from localStorage
   clearCurrentUser(): void {
     localStorage.removeItem('currentUser');
+    this.userSubject.next(null);
   }
 
   // Check if user is logged in

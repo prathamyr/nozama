@@ -34,6 +34,17 @@ export class Navbar implements OnInit {
     this.loadCartCount();
     this.checkVisibility(this.router.url);
 
+    // Subscribe to user changes
+    this.authService.user$.subscribe(user => {
+      this.user = user;
+      // Reload cart count when user changes
+      if (user) {
+        this.loadCartCount();
+      } else {
+        this.cartItemCount = 0;
+      }
+    });
+
     // Subscribe to cart changes
     this.cartService.cart$.subscribe(cart => {
       if (cart && cart.items) {
