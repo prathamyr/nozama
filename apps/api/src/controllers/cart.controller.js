@@ -79,10 +79,10 @@ exports.addOrUpdateItem = async (req, res) => {
         const { cartId } = req.params;
         const { productId, quantity } = req.body;
         
-        // Validate input
-        if (!productId || !quantity || quantity <= 0) {
-            return res.status(400).json({ ok: false, error: 'Valid productId and quantity required' });
-        }
+        // // Validate input
+        // if (!productId || !quantity) {
+        //     return res.status(400).json({ ok: false, error: 'Valid productId and quantity required' });
+        // }
         
         // Get product and validate stock
         const product = await ProductDAO.getProductById(productId);
@@ -94,7 +94,7 @@ exports.addOrUpdateItem = async (req, res) => {
             return res.status(400).json({ ok: false, error: 'Product is not available' });
         }
         
-        // ✅ FIX: Check total quantity (existing in cart + new quantity)
+        // FIX: Check total quantity (existing in cart + new quantity)
         const currentCart = await Cart.findById(cartId).populate('items.productId');
         
         let currentQuantity = 0;

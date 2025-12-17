@@ -63,10 +63,12 @@ export class Cart implements OnInit, OnDestroy {
   }
 
   // Update item quantity
-  updateQuantity(productId: string, newQuantity: number) {
-    if (!this.cart || newQuantity < 1) return;
+  updateQuantity(productId: string, QuantityDelta: number) {
+    if (!this.cart) return;
     
-    this.cartService.updateQuantity(this.cart._id, productId, newQuantity).subscribe({
+    console.log ('Updating quantity for product:', productId, 'by', QuantityDelta);
+    
+    this.cartService.updateQuantity(this.cart._id, productId, QuantityDelta).subscribe({
       next: (response) => {
         if (response?.ok) {
           // Cart observable auto-updates

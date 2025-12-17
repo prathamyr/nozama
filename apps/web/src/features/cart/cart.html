@@ -63,7 +63,7 @@
                   <div class="flex items-center justify-between mt-4">
                     <!-- Quantity Controls -->
                     <div class="flex items-center border border-gray-300 rounded-md">
-                      <button (click)="updateQuantity(item.productId._id, item.quantity - 1)"
+                      <button (click)="updateQuantity(item.productId._id, -1)"
                               [disabled]="item.quantity <= 1"
                               class="px-3 py-1 text-gray-600 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed">
                         -
@@ -71,7 +71,7 @@
                       <span class="px-4 py-1 text-sm font-medium text-gray-900 border-x border-gray-300">
                         {{ item.quantity }}
                       </span>
-                      <button (click)="updateQuantity(item.productId._id, item.quantity + 1)"
+                      <button (click)="updateQuantity(item.productId._id, +1)"
                               [disabled]="item.quantity >= item.productId.stockQuantity"
                               class="px-3 py-1 text-gray-600 hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed">
                         +

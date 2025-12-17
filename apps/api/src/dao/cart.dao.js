@@ -52,7 +52,8 @@ class CartDAO {
                 cartId,
                 { $set: { items: [] } },
                 { new: true }
-            ).populate('items.productId'); // ✅ FIX: Populate after clearing
+            ).populate('items.productId'); 
+            // FIX: Populate after clearing
         } catch (e) {
             throw new Error(`Error clearing cart: ${e.message}`);
         }
@@ -81,7 +82,7 @@ class CartDAO {
 
             await cart.save();
             
-            // ✅ FIX: Populate the saved cart before returning
+            //BUG FIX: Populate the saved cart before returning
             await cart.populate('items.productId');
             return cart;
         } catch (e) {
@@ -95,19 +96,21 @@ class CartDAO {
                 cartId,
                 { $pull: { items: { productId } } },
                 { new: true }
-            ).populate('items.productId'); // ✅ FIX: Populate after removing
+            ).populate('items.productId'); // BUG FIX: Populate after removing
         } catch (e) {
             throw new Error(`Error removing item: ${e.message}`);
         }
     }
 
     static async updateQuantity(cartId, productId, quantity) {
+        if (quantity < 0) throw new Error('Quantity cannot be negative');
+
         try {
             return await Cart.findOneAndUpdate(
                 { _id: cartId, "items.productId": productId },
                 { $set: { "items.$.quantity": quantity } },
                 { new: true }
-            ).populate('items.productId'); // ✅ FIX: Populate after updating
+            ).populate('items.productId'); // BUG FIX: Populate after updating
         } catch (e) {
             throw new Error(`Error updating quantity: ${e.message}`);
         }
