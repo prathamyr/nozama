@@ -88,8 +88,8 @@ export class Checkout implements OnInit {
   }
 
   // Toggle same as shipping
-  toggleSameAsShipping() {
-    this.sameAsShipping = !this.sameAsShipping;
+  toggleSameAsShipping(value: boolean) {
+    this.sameAsShipping = value;
     if (this.sameAsShipping) {
       this.billingAddress = { ...this.shippingAddress };
     }
@@ -138,7 +138,7 @@ export class Checkout implements OnInit {
       next: (response) => {
         if (response?.ok && response.order) {
           // Success - redirect to order confirmation
-          this.router.navigate(['/order-confirmation', response.order._id]);
+          this.router.navigate(['home']);
         } else {
           this.errorMessage = response.error || 'Order failed. Please try again.';
           this.isProcessing = false;

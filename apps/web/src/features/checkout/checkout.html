@@ -85,7 +85,7 @@
               <label class="flex items-center text-sm">
                 <input type="checkbox" 
                        [(ngModel)]="sameAsShipping"
-                       (change)="toggleSameAsShipping()"
+                       (ngModelChange)="toggleSameAsShipping($event)"
                        class="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600" />
                 Same as shipping
               </label>
