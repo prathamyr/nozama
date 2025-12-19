@@ -1,10 +1,15 @@
+// Load env vars first before any other requires
+require('dotenv').config();
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
-require('dotenv').config();
+const Cart = require('../models/cart.model');
+const Order = require('../models/order.model');
+const InventoryLog = require('../models/inventorylog.model');
 
-// Sample laptop data based on your folders
+// Sample laptop data
 const laptops = [
   {
     name: "ThinkPad X1 Carbon Gen 13 Intel (14'') Aura Edition",
@@ -153,7 +158,7 @@ const laptops = [
   }
 ];
 
-// Admin user
+// Default users
 const adminUser = {
   firstname: "Admin",
   lastname: "User",
@@ -161,64 +166,309 @@ const adminUser = {
   role: "admin"
 };
 
-// Test customer user
 const customerUser = {
   firstname: "Test",
   lastname: "Customer",
   email: "customer@nozama.com",
-  role: "customer"
+  role: "customer",
+  shippingAddress: {
+    addressType: "shipping",
+    fullName: "Test Customer",
+    line1: "123 Main Street",
+    line2: "Apt 4B",
+    city: "Toronto",
+    state: "ON",
+    postalCode: "M5V 2H1",
+    country: "Canada"
+  },
+  billingAddress: {
+    addressType: "billing",
+    fullName: "Test Customer",
+    line1: "123 Main Street",
+    line2: "Apt 4B",
+    city: "Toronto",
+    state: "ON",
+    postalCode: "M5V 2H1",
+    country: "Canada"
+  },
+  paymentMethods: [
+    {
+      cardBrand: "Visa",
+      last4: "4242",
+      expiryMonth: 12,
+      expiryYear: 2026,
+      label: "Personal Visa",
+      isDefault: true
+    }
+  ]
 };
 
-// Seed function
+// CLI flags
+const RESET = process.argv.includes('--reset');
+const FORCE = process.argv.includes('--force');
+
 async function seedDatabase() {
-  try {
-    console.log(' Starting database seed...');
-
-    // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log(' Connected to MongoDB');
-
-    // Clear existing data
-    console.log('  Clearing existing data...');
-    await Product.deleteMany({});
-    await User.deleteMany({});
-    console.log(' Existing data cleared');
-
-    // Insert products
-    console.log(' Inserting products...');
-    await Product.insertMany(laptops);
-    console.log(` Inserted ${laptops.length} products`);
-
-    // Hash passwords
-    console.log(' Creating users...');
-    const adminPasswordHash = await bcrypt.hash('admin123', 10);
-    const customerPasswordHash = await bcrypt.hash('customer123', 10);
-
-    // Create users with passwordHash
-    await User.create([
-      {
-        ...adminUser,
-        passwordHash: adminPasswordHash,
-      },
-      {
-        ...customerUser,
-        passwordHash: customerPasswordHash,
-      },
-    ]);
-
-    console.log(' Created admin and customer users');
-
-    console.log('\n Database seeding completed successfully!\n');
-    console.log(' Login credentials:');
-    console.log('   Admin: admin@nozama.com / admin123');
-    console.log('   Customer: customer@nozama.com / customer123\n');
-
-    process.exit(0);
-  } catch (error) {
-    console.error(' Error seeding database:', error);
+  if (!process.env.MONGO_URI) {
+    console.error('[ERROR] MONGO_URI not set. Check apps/api/.env');
     process.exit(1);
+  }
+
+  try {
+    console.log('[SEED] Starting database seed...');
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('[OK] Connected to MongoDB');
+
+    // Wipe collections if --reset flag
+    if (RESET) {
+      console.log('[RESET] Clearing all collections...');
+      await Product.deleteMany({});
+      await User.deleteMany({});
+      await Cart.deleteMany({});
+      await Order.deleteMany({});
+      await InventoryLog.deleteMany({});
+      console.log('[RESET] Collections cleared');
+    }
+
+    // --- SEED PRODUCTS ---
+    console.log('[SEED] Seeding products...');
+    const productIds = {}; // store refs for later use
+    for (const p of laptops) {
+      let product = await Product.findOne({ slug: p.slug });
+      if (!product) {
+        product = await Product.create(p);
+      } else if (FORCE) {
+        await Product.updateOne({ slug: p.slug }, { $set: p });
+      }
+      productIds[p.slug] = product._id;
+    }
+    console.log(`[OK] Products seeded (${laptops.length} items)`);
+
+    // --- SEED USERS ---
+    console.log('[SEED] Seeding users...');
+    const adminPlain = process.env.SEED_ADMIN_PASSWORD || 'admin123';
+    const customerPlain = process.env.SEED_CUSTOMER_PASSWORD || 'Customer@123';
+
+    const adminHash = await bcrypt.hash(adminPlain, 10);
+    const customerHash = await bcrypt.hash(customerPlain, 10);
+
+    // Upsert admin
+    const adminResult = await User.findOneAndUpdate(
+      { email: adminUser.email },
+      { $set: { ...adminUser, passwordHash: adminHash } },
+      { upsert: true, new: true }
+    );
+
+    // Upsert customer
+    const customerResult = await User.findOneAndUpdate(
+      { email: customerUser.email },
+      { $set: { ...customerUser, passwordHash: customerHash } },
+      { upsert: true, new: true }
+    );
+    console.log('[OK] Users seeded');
+
+    // --- SEED CART (sample cart for customer) ---
+    console.log('[SEED] Seeding carts...');
+    const existingCart = await Cart.findOne({ userId: customerResult._id, status: 'open' });
+    if (!existingCart || FORCE) {
+      await Cart.findOneAndUpdate(
+        { userId: customerResult._id, status: 'open' },
+        {
+          $set: {
+            userId: customerResult._id,
+            status: 'open',
+            items: [
+              { productId: productIds['yoga-slim-7x-snapdragon'], quantity: 1 },
+              { productId: productIds['loq-15-amd-rtx-5060'], quantity: 2 }
+            ]
+          }
+        },
+        { upsert: true, new: true }
+      );
+    }
+    console.log('[OK] Carts seeded');
+
+    // --- SEED ORDERS (sample past orders) ---
+    console.log('[SEED] Seeding orders...');
+    const existingOrders = await Order.countDocuments({ user: customerResult._id });
+    if (existingOrders === 0 || FORCE) {
+      // Clear old orders if forcing
+      if (FORCE) await Order.deleteMany({ user: customerResult._id });
+
+      const sampleAddress = {
+        fullName: "Test Customer",
+        line1: "123 Main Street",
+        line2: "Apt 4B",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M5V 2H1",
+        country: "Canada"
+      };
+
+      // Order 1: Delivered
+      await Order.create({
+        user: customerResult._id,
+        userEmail: customerUser.email,
+        itemsOrdered: [
+          {
+            productId: productIds['thinkpad-x1-carbon-gen-13'],
+            productName: laptops[0].name,
+            productPrice: laptops[0].price,
+            thumbnailImg: laptops[0].thumbnailImg,
+            quantity: 1
+          }
+        ],
+        subtotal: 1899,
+        taxPrice: 246.87,
+        shippingPrice: 0,
+        totalAmount: 2145.87,
+        shippingAddress: sampleAddress,
+        billingAddress: sampleAddress,
+        billingInfo: { lastFourDigits: "4242", cardBrand: "Visa" },
+        orderStatus: "delivered",
+        paymentDetails: {
+          transactionId: "TXN_" + Date.now() + "_001",
+          paymentStatus: "Approved",
+          paymentDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+        }
+      });
+
+      // Order 2: Processing
+      await Order.create({
+        user: customerResult._id,
+        userEmail: customerUser.email,
+        itemsOrdered: [
+          {
+            productId: productIds['slim-7i-aura-14-intel'],
+            productName: laptops[4].name,
+            productPrice: laptops[4].price,
+            thumbnailImg: laptops[4].thumbnailImg,
+            quantity: 1
+          },
+          {
+            productId: productIds['yoga-7i-2in1-16-intel'],
+            productName: laptops[3].name,
+            productPrice: laptops[3].price,
+            thumbnailImg: laptops[3].thumbnailImg,
+            quantity: 1
+          }
+        ],
+        subtotal: 3098,
+        taxPrice: 402.74,
+        shippingPrice: 0,
+        totalAmount: 3500.74,
+        shippingAddress: sampleAddress,
+        billingAddress: sampleAddress,
+        billingInfo: { lastFourDigits: "4242", cardBrand: "Visa" },
+        orderStatus: "processing",
+        paymentDetails: {
+          transactionId: "TXN_" + Date.now() + "_002",
+          paymentStatus: "Approved",
+          paymentDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
+        }
+      });
+
+      // Order 3: Cancelled (for history variety)
+      await Order.create({
+        user: customerResult._id,
+        userEmail: customerUser.email,
+        itemsOrdered: [
+          {
+            productId: productIds['loq-15-amd-rtx-5060'],
+            productName: laptops[2].name,
+            productPrice: laptops[2].price,
+            thumbnailImg: laptops[2].thumbnailImg,
+            quantity: 1
+          }
+        ],
+        subtotal: 1399,
+        taxPrice: 181.87,
+        shippingPrice: 0,
+        totalAmount: 1580.87,
+        shippingAddress: sampleAddress,
+        billingAddress: sampleAddress,
+        billingInfo: { lastFourDigits: "4242", cardBrand: "Visa" },
+        orderStatus: "cancelled",
+        paymentDetails: {
+          transactionId: "TXN_" + Date.now() + "_003",
+          paymentStatus: "Refunded",
+          paymentDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) // 14 days ago
+        }
+      });
+    }
+    console.log('[OK] Orders seeded');
+
+    // --- SEED INVENTORY LOGS ---
+    console.log('[SEED] Seeding inventory logs...');
+    const existingLogs = await InventoryLog.countDocuments();
+    if (existingLogs === 0 || FORCE) {
+      if (FORCE) await InventoryLog.deleteMany({});
+
+      // Sample restock logs by admin
+      const logEntries = [
+        {
+          productId: productIds['thinkpad-x1-carbon-gen-13'],
+          adminId: adminResult._id,
+          actionType: 'RESTOCK',
+          quantityChange: 10,
+          reason: 'Initial inventory load'
+        },
+        {
+          productId: productIds['yoga-slim-7x-snapdragon'],
+          adminId: adminResult._id,
+          actionType: 'RESTOCK',
+          quantityChange: 15,
+          reason: 'Supplier shipment received'
+        },
+        {
+          productId: productIds['loq-15-amd-rtx-5060'],
+          adminId: adminResult._id,
+          actionType: 'SALE',
+          quantityChange: -2,
+          reason: 'Order #TXN_001'
+        },
+        {
+          productId: productIds['slim-7i-aura-14-intel'],
+          adminId: adminResult._id,
+          actionType: 'CORRECTION',
+          quantityChange: -1,
+          reason: 'Damaged unit removed'
+        },
+        {
+          productId: productIds['loq-15-amd-rtx-5060'],
+          adminId: adminResult._id,
+          actionType: 'CANCELLED_ORDER',
+          quantityChange: 1,
+          reason: 'Order cancelled - stock returned'
+        }
+      ];
+
+      await InventoryLog.insertMany(logEntries);
+    }
+    console.log('[OK] Inventory logs seeded');
+
+    // --- SUMMARY ---
+    console.log('\n========================================');
+    console.log('[DONE] Database seeding completed!');
+    console.log('========================================\n');
+    console.log('Login credentials:');
+    console.log(`  Admin:    ${adminUser.email} / ${adminPlain}`);
+    console.log(`  Customer: ${customerUser.email} / ${customerPlain}\n`);
+    console.log('Seeded data summary:');
+    console.log(`  - Products: ${laptops.length}`);
+    console.log(`  - Users: 2 (admin + customer)`);
+    console.log(`  - Cart: 1 (customer with 2 items)`);
+    console.log(`  - Orders: 3 (delivered, processing, cancelled)`);
+    console.log(`  - Inventory Logs: 5 entries\n`);
+    console.log('Usage:');
+    console.log('  --reset  Wipe all collections then seed');
+    console.log('  --force  Overwrite existing docs\n');
+
+  } catch (err) {
+    console.error('[ERROR] Seeding failed:', err);
+    process.exitCode = 1;
+  } finally {
+    await mongoose.disconnect().catch(() => {});
   }
 }
 
-// Run seed
 seedDatabase();
