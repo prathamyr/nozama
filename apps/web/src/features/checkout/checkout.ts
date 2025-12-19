@@ -41,7 +41,10 @@ export class Checkout implements OnInit {
   
   billingInfo = {
     cardNumber: '',
-    cardBrand: 'Visa'
+    cardBrand: 'Visa',
+    cardExpiryMonth: '',
+    cardExpiryYear: '',
+    cardCVC: '',
   };
   
   sameAsShipping = true;
@@ -87,13 +90,12 @@ export class Checkout implements OnInit {
     });
   }
 
-  // Toggle same as shipping
-  toggleSameAsShipping(value: boolean) {
-    this.sameAsShipping = value;
-    if (this.sameAsShipping) {
+  // Toggle same as shipping - FIX: sync addresses properly
+  toggleSameAsShipping(checked: boolean) {
+    if (checked) {
       this.billingAddress = { ...this.shippingAddress };
     }
-  }
+  } 
 
   // Validate form
   isFormValid(): boolean {
@@ -113,14 +115,48 @@ export class Checkout implements OnInit {
       billing.state.trim() !== '' &&
       billing.postalCode.trim() !== '' &&
       payment.cardNumber.trim() !== '' &&
-      payment.cardBrand.trim() !== ''
+      payment.cardBrand.trim() !== '' &&
+      payment.cardExpiryMonth.trim() !== '' &&
+      payment.cardExpiryYear.trim() !== '' &&
+      payment.cardCVC.trim() !== ''
     );
+  }
+
+  isCardExpired(month: string, year: string): boolean {
+  const expMonth = parseInt(month, 10);
+  const expYear = 2000 + parseInt(year, 10); // "25" → 2025
+  
+  // Validate month range
+  if (expMonth < 1 || expMonth > 12) {
+    return true; // Invalid month = expired
+  }
+  
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  
+  // Card expires at END of month, not beginning
+  if (expYear < currentYear) return true;
+  if (expYear === currentYear && expMonth < currentMonth) return true;
+  
+  return false;
   }
 
   // Place order
   placeOrder() {
     if (!this.isFormValid()) {
       this.errorMessage = 'Please fill in all required fields.';
+      return;
+    }
+
+    const month = parseInt(this.billingInfo.cardExpiryMonth, 10);
+    if (month < 1 || month > 12) {
+    this.errorMessage = 'Invalid expiry month. Enter 01-12.';
+    return;
+    }
+
+    if (this.isCardExpired(this.billingInfo.cardExpiryMonth, this.billingInfo.cardExpiryYear)) {
+      this.errorMessage = 'Your card is expired. Please use a valid card.';
       return;
     }
     
@@ -138,7 +174,7 @@ export class Checkout implements OnInit {
       next: (response) => {
         if (response?.ok && response.order) {
           // Success - redirect to order confirmation
-          this.router.navigate(['home']);
+          this.router.navigate(['/home']);
         } else {
           this.errorMessage = response.error || 'Order failed. Please try again.';
           this.isProcessing = false;
