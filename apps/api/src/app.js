@@ -1,7 +1,8 @@
-// This defines the express instance to run at port 3000 for example
+// app.js
 const express = require("express");
 const cors = require('cors');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser'); // ← ADD THIS
 
 const routes = require('./routes');
 const notFound = require('./middleware/notFound');
@@ -12,14 +13,15 @@ const app = express();
 
 // Core middleware
 app.use(express.json());
+app.use(cookieParser()); // ← ADD THIS (must be before routes)
 app.use(morgan('dev'));
 
 // CORS setup (to connect with front end)
 const corsOptions = {
   origin: config.corsOrigin === '*' ? '*' : [config.corsOrigin],
-  credentials: true, // allow cookies/auth headers if needed
+  credentials: true, // allow cookies/auth headers
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'] // ← Add X-User-Id for auth
 };
 app.use(cors(corsOptions));
 
@@ -31,5 +33,3 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
-
-

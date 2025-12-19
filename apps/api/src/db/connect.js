@@ -12,6 +12,9 @@ async function connectDB() {
 
   mongoose.set('strictQuery', true);
   await mongoose.connect(mongoUri);
+
+  console.log(`[db] Connected to MongoDB: ${mongoose.connection.host}`);
+
   return mongoose.connection;
 }
 

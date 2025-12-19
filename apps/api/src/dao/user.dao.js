@@ -1,9 +1,15 @@
+// user.dao.js
+// DAO responsible for all database operations related to User.
+
 const User = require('../models/user.model');
 
-// simple and not-bloated
 class UserDAO {
+
+    // ---------------------------------------------------------
+    // USER CREATION / BASIC PROFILE MANAGEMENT
+    // ---------------------------------------------------------
     
-    //Create a new user (Registration)
+    // Create a new user (Registration)
     static async createUser(firstName, lastName, email, password) {
         try {
             const user = new User({
@@ -19,18 +25,18 @@ class UserDAO {
         }
     }
 
-    //Find user by email (Login)
+    // Find user by email (Login)
     static async findUserByEmail(email) {
         try {
             return await User.findOne({ email });
         } catch (e) {
-            throw new Error(`Error finding user: ${e.message}`);
+            throw new Error(`Error finding user by email: ${e.message}`);
         }
     }
 
     
-    //Get User Profile (excluding sensitive hash by default if needed)
-    //We populate the wishlist to show product details immediately
+    // Get User Profile (excluding sensitive hash by default if needed)
+    // We populate the wishlist to show product details immediately
     static async getUserById(userId) {
         try { 
             return await User.findById(userId).populate('wishlist');
@@ -40,7 +46,7 @@ class UserDAO {
     }
 
     
-    //Update basic profile info (Name, etc.)
+    // Update basic profile info (name, etc.)
     static async updateProfile(userId, updateData) {
         try {
             return await User.findByIdAndUpdate(
@@ -53,38 +59,105 @@ class UserDAO {
         }
     }
 
-    
-    // ----------------------------------------------------------------------
-
-    // ADDRESS MANAGEMENT (Complex Array Logic)    
-    //Set default billing or shipping address
-    static async setDefaultAddress(userId, type, addressInfo) {
+    // Add payment method
+    static async addPaymentMethod(userId, paymentData) {
         try {
-            const updateField = type === 'billing' ? 'billingAddress' : 'shippingAddressId';
-            
             return await User.findByIdAndUpdate(
                 userId,
-                { [updateField]: addressInfo }
+                { $push: { paymentMethods: paymentData } },
+                { new: true }
             );
         } catch (e) {
-            throw new Error(`Error setting default address: ${e.message}`);
+            throw new Error(`Error adding payment method: ${e.message}`);
         }
     }
 
+    // Remove payment method
+    static async removePaymentMethod(userId, paymentMethodId) {
+        try {
+            return await User.findByIdAndUpdate(
+                userId,
+                { $pull: { paymentMethods: { _id: paymentMethodId } } },
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error removing payment method: ${e.message}`);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // ADDRESS MANAGEMENT
+    // ---------------------------------------------------------
+
+    // Update billing or shipping address
+    static async setAddress(userId, type, addressData) {
+        try {
+            const updateField = type === 'billing' ? 'billingAddress' : 'shippingAddress';
+
+            return await User.findByIdAndUpdate(
+                userId,
+                { [updateField]: addressData },
+                { new: true, runValidators: true }
+            );
+        } catch (e) {
+            throw new Error(`Error updating address: ${e.message}`);
+        }
+    }
+
+    // Remove shipping or billing address (sets to null)
+    static async removeAddress(userId, type) {
+        try {
+            const field = type === 'billing' ? 'billingAddress' : 'shippingAddress';
+
+            return await User.findByIdAndUpdate(
+                userId,
+                { [field]: null },
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error removing address: ${e.message}`);
+        }
+    }
+
+
     // ----------------------------------------------------------------------
-
-    // WISHLIST MANAGEMENT - TO BE DONE;
-
+    // WISHLIST MANAGEMENT
     // ----------------------------------------------------------------------
-
-    // ADMIN FEATURES:
     
-    //Get all users (for Admin Dashboard)
+    static async addToWishlist(userId, productId) {
+        try {
+            return await User.findByIdAndUpdate(
+                userId,
+                { $addToSet: { wishlist: productId } }, // prevents duplicates
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error adding wishlist item: ${e.message}`);
+        }
+    }
+
+    static async removeFromWishlist(userId, productId) {
+        try {
+            return await User.findByIdAndUpdate(
+                userId,
+                { $pull: { wishlist: productId } },
+                { new: true }
+            );
+        } catch (e) {
+            throw new Error(`Error removing wishlist item: ${e.message}`);
+        }
+    }
+    
+    
+    // ---------------------------------------------------------
+    // ADMIN (DASHBOARD)
+    // ---------------------------------------------------------
+    
     static async getAllUsers() {
         try {
             return await User.find({}, '-passwordHash'); 
         } catch (e) {
-            throw new Error(`Error retrieving users: ${e.message}`);
+            throw new Error(`Error retrieving all users: ${e.message}`);
         }
     }
 }

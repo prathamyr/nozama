@@ -1,0 +1,89 @@
+@if (isVisible) {
+  <nav class="bg-gray-800">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        
+        <!-- Left Side: Logo & Navigation Links -->
+        <div class="flex items-center">
+          <!-- Logo -->
+          <div class="shrink-0">
+            <img src="/logo/sideways-logo.png" alt="Nozama" class="h-8 w-auto cursor-pointer" (click)="goToHome()" />
+          </div>
+          
+          <!-- Desktop Navigation Links -->
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a routerLink="/home" 
+                 routerLinkActive="bg-gray-900 text-white"
+                 [routerLinkActiveOptions]="{exact: false}"
+                 class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">
+                Home
+              </a>
+              <a routerLink="/products" 
+                 routerLinkActive="bg-gray-900 text-white"
+                 class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">
+                Products
+              </a>
+              @if (user) {
+                <a routerLink="/profile" 
+                   routerLinkActive="bg-gray-900 text-white"
+                   class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">
+                  My Account
+                </a>
+              }
+              @if (user && user.role === 'admin') {
+                <a routerLink="/admin" 
+                   routerLinkActive="bg-gray-900 text-white"
+                   class="rounded-md px-3 py-2 text-sm font-medium text-yellow-300 hover:bg-gray-700 hover:text-yellow-100">
+                  Admin
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Cart & User Actions -->
+        <div class="flex items-center space-x-4">
+          
+          <!-- Cart Button with Badge -->
+          <button type="button" 
+                  (click)="goToCart()" 
+                  class="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline-none">
+            <span class="sr-only">View cart</span>
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <!-- Cart Count Badge -->
+            @if (cartItemCount > 0) {
+              <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {{ cartItemCount }}
+              </span>
+            }
+          </button>
+          
+          <!-- User Section -->
+          @if (user) {
+            <!-- User Greeting -->
+            <span class="hidden md:block text-sm text-gray-300">
+              Hi, {{ user.firstname }}
+            </span>
+            
+            <!-- Logout Button -->
+            <button (click)="logout()" 
+                    class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-red-900/50 hover:text-white transition-colors">
+              Logout
+            </button>
+          } @else {
+            <!-- Sign In Link -->
+            <a routerLink="/login" 
+               class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">
+              Sign In
+            </a>
+          }
+
+        </div>
+      </div>
+    </div>
+  </nav>
+}

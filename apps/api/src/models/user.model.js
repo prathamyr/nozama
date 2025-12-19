@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
   shippingAddress: { type: addressSchema },
   billingAddress: { type: addressSchema},
 
-  paymentMethods: paymentMethodSchema,
+  paymentMethods: [paymentMethodSchema],
 
 }, { timestamps: true });
 

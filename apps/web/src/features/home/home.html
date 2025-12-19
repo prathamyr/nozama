@@ -1,0 +1,86 @@
+<div class="min-h-full">
+  
+  <header class="bg-white shadow">
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Welcome to Nozama</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      
+      <!-- Stats Cards -->
+      <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500">Total Products</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ stats.totalProducts }}</dd>
+          </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500">New Arrivals</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ stats.newArrivals }}</dd>
+          </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <dt class="text-sm font-medium text-gray-500">On Sale</dt>
+            <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ stats.onSale }}</dd>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Shop by Category</h2>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div *ngFor="let category of categories" 
+               (click)="viewCategory(category.value)"
+               class="cursor-pointer bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow text-center">
+            <div class="text-3xl mb-2">{{ category.icon }}</div>
+            <h3 class="text-sm font-medium text-gray-900">{{ category.name }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Products -->
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Featured Laptops</h2>
+        
+        <!-- Loading state -->
+        <div *ngIf="featuredProducts.length === 0" class="text-center py-12">
+          <p class="text-gray-500">Loading products...</p>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div *ngFor="let product of featuredProducts" class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+            
+            <!-- Product Image & Info (clickable) -->
+            <div (click)="viewProduct(product._id)" class="cursor-pointer">
+              <img [src]="product.thumbnailImg" 
+                   [alt]="product.name" 
+                   class="h-48 w-full object-cover rounded-t-lg">
+              <div class="p-4">
+                <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+                <p class="text-sm text-gray-500">{{ product.brand }}</p>
+                <p class="mt-2 text-xl font-bold text-gray-900">\${{ product.price }}</p>
+              </div>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <div class="px-4 pb-4">
+              <button (click)="quickAddToCart(product)" 
+                      [disabled]="product.stockQuantity === 0"
+                      class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+                {{ product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

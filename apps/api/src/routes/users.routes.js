@@ -1,13 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, loginUser, signupUser, updateAddress } = require('../controllers/users.controller');
+const { requireAuth } = require('../middleware/auth');
 
-router.post('/', getUsers);
+const {
+  getUserProfile,
+  updateProfile,
+  updateAddress,
+  addToWishlist,
+  removeFromWishlist,
+  addPaymentMethod,
+  removePaymentMethod
+} = require('../controllers/users.controller');
 
-router.post('/login', loginUser);
+// Require auth for all user endpoints
+router.use(requireAuth);
 
-router.post('/signup', signupUser);
+// Get user profile
+router.get('/:userId', getUserProfile);
 
-router.post('/updateAddress', updateAddress)
+// Update user profile (name, etc)
+router.put('/:userId', updateProfile);
+
+// Update shipping/billing address
+router.put('/:userId/address', updateAddress);
+
+// Wishlist management
+router.post('/:userId/wishlist', addToWishlist);
+router.delete('/:userId/wishlist/:productId', removeFromWishlist);
+
+// Payment methods
+router.post('/:userId/payment-methods', addPaymentMethod);
+router.delete('/:userId/payment-methods/:paymentId', removePaymentMethod);
 
 module.exports = router;
