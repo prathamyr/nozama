@@ -137,6 +137,7 @@ export class Profile implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: any) => {
         if (response?.ok) {
+          this.errorMessage = '';
           this.successMessage = 'Profile updated successfully';
           this.profileEdit = false;
           // Update localStorage
@@ -173,6 +174,7 @@ export class Profile implements OnInit, OnDestroy {
             this.getHeaders()
           ).subscribe({
             next: () => {
+              this.errorMessage = '';
               this.successMessage = 'Addresses updated successfully';
               this.addressEdit = false;
             },
@@ -222,6 +224,7 @@ export class Profile implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: any) => {
         if (response?.ok) {
+          this.errorMessage = '';
           this.wishlist = response.user.wishlist || [];
           this.successMessage = 'Removed from wishlist';
         }
@@ -253,6 +256,7 @@ export class Profile implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: any) => {
         if (response?.ok) {
+          this.errorMessage = '';
           this.paymentMethods = response.user.paymentMethods || [];
           this.successMessage = 'Payment method added';
           this.togglePaymentForm();
@@ -271,6 +275,7 @@ export class Profile implements OnInit, OnDestroy {
     ).subscribe({
       next: (response: any) => {
         if (response?.ok) {
+          this.errorMessage = '';
           this.paymentMethods = response.user.paymentMethods || [];
           this.successMessage = 'Payment method removed';
         }

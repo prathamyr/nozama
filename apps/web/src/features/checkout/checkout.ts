@@ -149,14 +149,29 @@ export class Checkout implements OnInit {
       return;
     }
 
+    if (this.billingInfo.cardNumber.length !== 16) {
+      this.errorMessage = 'Invaild card number. Must contain 16 digits.';
+      return;
+    }
+
     const month = parseInt(this.billingInfo.cardExpiryMonth, 10);
     if (month < 1 || month > 12) {
     this.errorMessage = 'Invalid expiry month. Enter 01-12.';
     return;
     }
 
+    if (this.billingInfo.cardExpiryYear.length !== 2) {
+      this.errorMessage = 'Invalid expiry year. Must contain 2 digits.';
+      return;
+    }
+
     if (this.isCardExpired(this.billingInfo.cardExpiryMonth, this.billingInfo.cardExpiryYear)) {
       this.errorMessage = 'Your card is expired. Please use a valid card.';
+      return;
+    }
+
+    if (this.billingInfo.cardCVC.length !== 3) {
+      this.errorMessage = 'Invalid CVC. Must contain 3 digits.';
       return;
     }
     
