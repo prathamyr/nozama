@@ -18,10 +18,10 @@ app.use(morgan('dev'));
 
 // CORS setup (to connect with front end)
 const corsOptions = {
-  origin: config.corsOrigin === '*' ? '*' : [config.corsOrigin],
+  origin: config.corsOrigin,
   credentials: true, // allow cookies/auth headers
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'] // ← Add X-User-Id for auth
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'] 
 };
 app.use(cors(corsOptions));
 

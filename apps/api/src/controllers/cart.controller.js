@@ -37,6 +37,7 @@ exports.getCart = async (req, res) => {
                 res.cookie('cart_token', token, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Adjusting based on deployment
                     maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
                 });
             }
@@ -63,10 +64,11 @@ exports.createCart = async (req, res) => {
         const cart = await CartDAO.createCart(null, token);
 
         res.cookie('cart_token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        });
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Adjusting based on deployment
+                    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+                });
 
         res.json({ ok: true, cart });
     } catch (e) {
