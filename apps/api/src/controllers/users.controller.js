@@ -21,16 +21,19 @@ exports.getUserProfile = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const { firstname, lastname } = req.body;
-        
-        const user = await UserDAO.updateProfile(userId, { firstname, lastname });
-        
-        res.json({ ok: true, user });
-    } catch (e) {
-        res.status(500).json({ ok: false, error: e.message });
-    }
+  try {
+    const { userId } = req.params;
+    const { firstname, lastname } = req.body;
+
+    const user = await UserDAO.updateProfile(userId, { firstname, lastname });
+
+    const sanitized = user.toObject();
+    delete sanitized.passwordHash;
+
+    res.json({ ok: true, user: sanitized });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 };
 
 exports.updateAddress = async (req, res) => {
@@ -72,16 +75,21 @@ exports.removeFromWishlist = async (req, res) => {
 };
 
 exports.addPaymentMethod = async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const paymentData = req.body;
-        
-        const user = await UserDAO.addPaymentMethod(userId, paymentData);
-        
-        res.json({ ok: true, user });
-    } catch (e) {
-        res.status(500).json({ ok: false, error: e.message });
+  try {
+    const { userId } = req.params;
+    const paymentData = req.body || {};
+
+    if (paymentData.cardNumber) {
+      const digits = String(paymentData.cardNumber).replace(/\s+/g, '');
+      paymentData.cardNumber = digits;
+      paymentData.last4 = digits.slice(-4);
     }
+
+    const user = await UserDAO.addPaymentMethod(userId, paymentData);
+    res.json({ ok: true, user });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 };
 
 exports.removePaymentMethod = async (req, res) => {

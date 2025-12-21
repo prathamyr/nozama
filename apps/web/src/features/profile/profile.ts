@@ -25,6 +25,7 @@ export class Profile implements OnInit, OnDestroy {
   
   // Addresses
   addressEdit = false;
+  useSameAddress = false;
   shippingAddress = {
     fullName: '', line1: '', line2: '', city: '', state: '', postalCode: '', country: 'Canada'
   };
@@ -42,7 +43,12 @@ export class Profile implements OnInit, OnDestroy {
   // Payment methods
   paymentMethods: any[] = [];
   newPayment = {
-    cardBrand: 'Visa', last4: '', expiryMonth: 1, expiryYear: 2025, label: '', isDefault: false
+    cardBrand: 'Visa',
+    cardNumber: '',
+    expiryMonth: 1,
+    expiryYear: 2025,
+    label: '',
+    isDefault: false
   };
   showPaymentForm = false;
   
@@ -155,26 +161,42 @@ export class Profile implements OnInit, OnDestroy {
   toggleAddressEdit() {
     this.addressEdit = !this.addressEdit;
     if (!this.addressEdit) {
+      this.useSameAddress = false;
       this.loadProfile();
     }
   }
 
+  toggleSameAddress() {
+  if (this.useSameAddress) {
+    this.billingAddress = { ...this.shippingAddress };
+  }
+  }
+
+  onSameAddressChange(checked: boolean) {
+  this.useSameAddress = checked;
+  if (checked) this.billingAddress = { ...this.shippingAddress };
+  }
+
   saveAddresses() {
+    const shippingPayload = { ...this.shippingAddress, addressType: 'shipping' };
+    const billingPayload = { ...this.billingAddress, addressType: 'billing' };
+
     // Update shipping
     this.http.put(`${this.apiUrl}/users/${this.currentUser._id}/address`,
-      { type: 'shipping', address: this.shippingAddress },
+      { type: 'shipping', address: shippingPayload },
       this.getHeaders()
     ).subscribe({
       next: (response: any) => {
         if (response?.ok) {
           // Update billing
           this.http.put(`${this.apiUrl}/users/${this.currentUser._id}/address`,
-            { type: 'billing', address: this.billingAddress },
+            { type: 'billing', address: billingPayload },
             this.getHeaders()
           ).subscribe({
             next: () => {
               this.successMessage = 'Addresses updated successfully';
               this.addressEdit = false;
+              this.useSameAddress = false;
             },
             error: (err) => {
               console.error('Update billing failed:', err);
@@ -247,8 +269,20 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   addPaymentMethod() {
+    const digits = (this.newPayment.cardNumber || '').replace(/\s+/g, '');
+    if (digits.length < 12) {
+      this.errorMessage = 'Please enter a valid card number';
+      return;
+    }
+
+    const payload = {
+      ...this.newPayment,
+      cardNumber: digits,
+      last4: digits.slice(-4)
+    };
+
     this.http.post(`${this.apiUrl}/users/${this.currentUser._id}/payment-methods`,
-      this.newPayment,
+      payload,
       this.getHeaders()
     ).subscribe({
       next: (response: any) => {
@@ -284,7 +318,7 @@ export class Profile implements OnInit, OnDestroy {
 
   resetPaymentForm() {
     this.newPayment = {
-      cardBrand: 'Visa', last4: '', expiryMonth: 1, expiryYear: 2025, label: '', isDefault: false
+      cardBrand: 'Visa', cardNumber: '', expiryMonth: 1, expiryYear: 2025, label: '', isDefault: false
     };
   }
 }

@@ -1,11 +1,11 @@
-// checkout.ts
 import { Component, OnInit } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CartService } from '../../shared/services/cart.service';
 import { OrderService } from '../../shared/services/order.service';
 import { AuthService } from '../../shared/services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-checkout',
@@ -14,11 +14,11 @@ import { AuthService } from '../../shared/services/auth.service';
   templateUrl: './checkout.html'
 })
 export class Checkout implements OnInit {
-  // Current cart and totals
+  private apiUrl = environment.serverUrl;
+
   cart: any = null;
   totals = { subtotal: 0, tax: 0, shipping: 0, total: 0 };
-  
-  // Form data
+
   shippingAddress = {
     fullName: '',
     line1: '',
@@ -28,7 +28,7 @@ export class Checkout implements OnInit {
     postalCode: '',
     country: 'Canada'
   };
-  
+
   billingAddress = {
     fullName: '',
     line1: '',
@@ -38,7 +38,7 @@ export class Checkout implements OnInit {
     postalCode: '',
     country: 'Canada'
   };
-  
+
   billingInfo = {
     cardNumber: '',
     cardBrand: 'Visa',
@@ -46,10 +46,17 @@ export class Checkout implements OnInit {
     cardExpiryYear: '',
     cardCVC: '',
   };
-  
+
   sameAsShipping = true;
-  
-  // State
+
+
+
+  // NEW: saved payment methods + selector
+  savedPaymentMethods: any[] = [];
+  selectedPaymentId: string | null = null;
+  paymentMode: 'saved' | 'new' = 'new';
+  savedCardLast4 = '';
+
   isProcessing = false;
   errorMessage = '';
   currentUser: any = null;
@@ -58,18 +65,123 @@ export class Checkout implements OnInit {
     private cartService: CartService,
     private orderService: OrderService,
     private authService: AuthService,
+    private http: HttpClient,
     private router: Router
   ) {}
 
   ngOnInit() {
-    // Check if user is logged in
     this.currentUser = this.authService.getCurrentUser();
     if (!this.currentUser) {
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/checkout' } });
       return;
     }
-    
+
     this.loadCart();
+    this.prefillFromProfile(); // NEW
+  }
+
+  private mergeAddress(base: any, saved: any): any {
+    if (!saved) return base;
+    // Drop addressType if it exists on User model; checkout doesn't need it
+    const { addressType, ...rest } = saved || {};
+    return { ...base, ...rest, country: rest.country || base.country };
+  }
+
+  private addressesEqual(a: any, b: any): boolean {
+    const keys = ['fullName', 'line1', 'line2', 'city', 'state', 'postalCode', 'country'];
+    return keys.every(k => (a?.[k] || '') === (b?.[k] || ''));
+  }
+
+  prefillFromProfile() {
+    this.http.get(`${this.apiUrl}/users/${this.currentUser._id}`).subscribe({
+      next: (res: any) => {
+        if (!res?.ok || !res.user) return;
+
+        const user = res.user;
+
+        // Addresses
+        this.shippingAddress = this.mergeAddress(this.shippingAddress, user.shippingAddress);
+
+        if (user.billingAddress) {
+          this.billingAddress = this.mergeAddress(this.billingAddress, user.billingAddress);
+          this.sameAsShipping = this.addressesEqual(this.shippingAddress, this.billingAddress);
+          if (this.sameAsShipping) {
+            this.billingAddress = { ...this.shippingAddress };
+          }
+        } else {
+          // If no billing saved, default to "same as shipping"
+          this.sameAsShipping = true;
+          this.billingAddress = { ...this.shippingAddress };
+        }
+
+        // Payment methods
+        this.savedPaymentMethods = user.paymentMethods || [];
+        const defaultPm =
+          this.savedPaymentMethods.find((p: any) => p.isDefault) || this.savedPaymentMethods[0];
+
+        if (defaultPm?._id) {
+          this.selectedPaymentId = defaultPm._id;
+          this.paymentMode = 'saved';
+          this.applySavedPayment(defaultPm._id);
+        } else {
+          this.paymentMode = 'new';
+        }
+      },
+      error: (err) => {
+        // Don't block checkout if profile fetch fails; just don't prefill.
+        console.error('Prefill profile failed:', err);
+      }
+    });
+  }
+
+  applySavedPayment(paymentId: string) {
+    const pm = this.savedPaymentMethods.find(p => p._id === paymentId);
+    if (!pm) return;
+
+    this.paymentMode = 'saved';
+
+    this.savedCardLast4 = pm.last4 || '';
+
+    this.billingInfo.cardBrand = pm.cardBrand || 'Visa';
+    this.billingInfo.cardExpiryMonth = pm.expiryMonth ? String(pm.expiryMonth).padStart(2, '0') : '';
+    this.billingInfo.cardExpiryYear = pm.expiryYear ? String(pm.expiryYear).slice(-2) : '';
+
+    // IMPORTANT:
+    // We still send a cardNumber so your existing validation + payment mock can work,
+    // but we will NOT bind this to the visible input in "saved" mode.
+    const last4 = (pm.last4 || '').toString().slice(-4);
+    this.billingInfo.cardNumber = last4 ? `000000000000${last4}` : '0000000000000000';
+
+    // Require re-entry for security / realism
+    this.billingInfo.cardCVC = '';
+  }
+
+  useNewCard() {
+    this.paymentMode = 'new';
+    this.selectedPaymentId = null;
+    this.savedCardLast4 = '';
+
+    this.billingInfo = {
+      cardNumber: '',
+      cardBrand: 'Visa',
+      cardExpiryMonth: '',
+      cardExpiryYear: '',
+      cardCVC: ''
+    };
+  }
+
+  useSavedCard() {
+    this.paymentMode = 'saved';
+
+    // If nothing selected yet, select default/first and apply it
+    if (!this.selectedPaymentId && this.savedPaymentMethods.length > 0) {
+      const def = this.savedPaymentMethods.find(p => p.isDefault) || this.savedPaymentMethods[0];
+      this.selectedPaymentId = def._id;
+    }
+
+    if (this.selectedPaymentId) {
+      this.applySavedPayment(this.selectedPaymentId);
+    }
   }
 
   // Load cart

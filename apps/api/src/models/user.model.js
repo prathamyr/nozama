@@ -26,6 +26,7 @@ const addressSchema = new mongoose.Schema({
 // id's needed to delte specific cards;
 const paymentMethodSchema = new mongoose.Schema({
   cardBrand: { type: String },
+  cardNumber: { type: String }, //(optional)
   last4: { type: String },
   expiryMonth: { type: Number },
   expiryYear: { type: Number },

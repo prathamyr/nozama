@@ -1,12 +1,11 @@
 <div class="bg-white">
   <div class="pt-6">
-
     <!-- Back Button -->
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-4">
       <button
         (click)="goBack()"
         class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700"
-        >
+      >
         <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -23,144 +22,177 @@
 
     <!-- Product Content -->
     @if (product) {
-      <div>
-        <!-- Image Gallery -->
-        <div class="mx-auto mt-6 max-w-2xl sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:gap-x-8 lg:px-8">
+      <div class="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 lg:max-w-7xl lg:grid lg:grid-cols-3 lg:gap-x-8 lg:px-8 lg:pb-24 lg:pt-16">
+        
+        <!-- Image Gallery (Left - 2 columns) -->
+        <div class="lg:col-span-2">
           <!-- Main Image -->
-          <div class="aspect-h-4 aspect-w-3 overflow-hidden rounded-lg lg:block">
+          <div class="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <img
-              [src]="product.thumbnailImg"
+              [src]="activeImageUrl || 'assets/placeholder.png'"
               [alt]="product.name"
-              class="h-full w-full object-cover object-center"
-              />
-            </div>
-            <!-- Gallery Images -->
-            <div class="hidden lg:grid lg:grid-cols-1 lg:gap-y-8">
-              @for (img of product.imageGallery?.slice(0, 2); track img) {
-                <div
-                  class="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg"
-                  >
+              class="h-80 w-full object-contain p-4 transition-transform duration-200 hover:scale-[1.02]"
+              loading="lazy"
+            />
+          </div>
+
+          <!-- Thumbnails -->
+          @if (galleryImages.length > 1) {
+            <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
+              @for (img of galleryImages; track img.url) {
+                <button
+                  type="button"
+                  (click)="setActiveImage(img.url)"
+                  class="shrink-0 rounded-lg border bg-white p-1 transition hover:shadow-sm"
+                  [class.border-blue-500]="img.url === activeImageUrl"
+                  [class.border-gray-200]="img.url !== activeImageUrl"
+                >
                   <img
                     [src]="img.url"
                     [alt]="product.name"
-                    class="h-full w-full object-cover object-center"
-                    />
-                  </div>
+                    class="h-16 w-16 rounded-md object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Product Info (Right - 1 column) -->
+        <div class="mt-10 lg:mt-0">
+          <!-- Title and Brand -->
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+            {{ product.name }}
+          </h1>
+          <p class="mt-2 text-lg text-gray-500">{{ product.brand }}</p>
+
+          <!-- Price -->
+          <p class="mt-6 text-3xl tracking-tight text-gray-900">${{ product.price }}</p>
+
+          <!-- Reviews -->
+          <div class="mt-6">
+            <div class="flex items-center">
+              <!-- Star Rating -->
+              <div class="flex items-center">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    [class.text-yellow-400]="star <= product.averageRating"
+                    [class.text-gray-300]="star > product.averageRating"
+                    class="h-5 w-5"
+                  >
+                    <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" />
+                  </svg>
                 }
               </div>
-            </div>
-            <!-- Product Info -->
-            <div class="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:grid-rows-[auto,auto,1fr] lg:gap-x-8 lg:px-8 lg:pb-24 lg:pt-16">
-              <!-- Title -->
-              <div class="lg:col-span-2 lg:border-r lg:border-gray-200 lg:pr-8">
-                <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-                  {{ product.name }}
-                </h1>
-                <p class="mt-2 text-lg text-gray-500">{{ product.brand }}</p>
-              </div>
-              <!-- Price & Add to Cart Section -->
-              <div class="mt-4 lg:row-span-3 lg:mt-0">
-                <h2 class="sr-only">Product information</h2>
-                <p class="text-3xl tracking-tight text-gray-900">${{ product.price }}</p>
-                <!-- Reviews -->
-                <div class="mt-6">
-                  <div class="flex items-center">
-                    <div class="flex items-center">
-                      <!-- Star Rating -->
-                      @for (star of [1,2,3,4,5]; track star) {
-                        <div class="text-gray-300">
-                          <svg
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            [class.text-yellow-400]="star <= product.averageRating"
-                            class="h-5 w-5"
-                            >
-                            <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" />
-                          </svg>
-                        </div>
-                      }
-                    </div>
-                    <p class="ml-3 text-sm font-medium text-gray-900">
-                      {{ product.averageRating }} out of 5 ({{ product.reviewCount }} reviews)
-                    </p>
-                  </div>
-                </div>
-                <!-- Stock Status -->
-                <div class="mt-6">
-                  @if (product.stockQuantity > 10) {
-                    <div
-                      class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800"
-                      >
-                      In Stock ({{ product.stockQuantity }} available)
-                    </div>
-                  }
-                  @if (product.stockQuantity > 0 && product.stockQuantity <= 10) {
-                    <div
-                      class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800"
-                      >
-                      Only {{ product.stockQuantity }} left!
-                    </div>
-                  }
-                  @if (product.stockQuantity === 0) {
-                    <div
-                      class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
-                      >
-                      Out of Stock
-                    </div>
-                  }
-                </div>
-                <!-- Quantity Selector -->
-                <div class="mt-8">
-                  <label for="quantity" class="block text-sm font-medium text-gray-700">
-                    Quantity
-                  </label>
-                  <select
-                    id="quantity"
-                    [(ngModel)]="selectedQuantity"
-                    class="mt-2 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                    >
-                    @for (qty of getAvailableQuantities(); track qty) {
-                      <option [value]="qty">{{ qty }}</option>
-                    }
-                  </select>
-                </div>
-                <!-- Add to Cart Button -->
-                <button
-                  (click)="addToCart()"
-                  [disabled]="product.stockQuantity === 0"
-                  class="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-8 py-3 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                  {{ product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart' }}
-                </button>
-              </div>
-              <!-- Description & Specs -->
-              <div class="py-10 lg:col-span-2 lg:col-start-1 lg:border-r lg:border-gray-200 lg:pb-16 lg:pr-8 lg:pt-6">
-                <!-- Description -->
-                <div>
-                  <h3 class="text-lg font-medium text-gray-900">Description</h3>
-                  <div class="mt-4 space-y-6">
-                    <p class="text-base text-gray-600">{{ product.description }}</p>
-                  </div>
-                </div>
-                <!-- Specifications -->
-                <div class="mt-10">
-                  <h3 class="text-lg font-medium text-gray-900">Specifications</h3>
-                  <div class="mt-4">
-                    <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                      @for (spec of getSpecsArray(); track spec) {
-                        <div
-                          class="border-t border-gray-200 pt-4"
-                          >
-                          <dt class="font-medium text-gray-900">{{ spec.key }}</dt>
-                          <dd class="mt-2 text-sm text-gray-500">{{ spec.value }}</dd>
-                        </div>
-                      }
-                    </dl>
-                  </div>
-                </div>
-              </div>
+              <p class="ml-3 text-sm font-medium text-gray-900">
+                {{ product.averageRating }} out of 5 ({{ product.reviewCount }} reviews)
+              </p>
             </div>
           </div>
-        }
+
+          <!-- Stock Status -->
+          <div class="mt-6">
+            @if (product.stockQuantity > 10) {
+              <div class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                In Stock ({{ product.stockQuantity }} available)
+              </div>
+            }
+            @if (product.stockQuantity > 0 && product.stockQuantity <= 10) {
+              <div class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                Only {{ product.stockQuantity }} left!
+              </div>
+            }
+            @if (product.stockQuantity === 0) {
+              <div class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+                Out of Stock
+              </div>
+            }
+          </div>
+
+          <!-- Quantity Selector -->
+          <div class="mt-8">
+            <label for="quantity" class="block text-sm font-medium text-gray-700">
+              Quantity
+            </label>
+            <select
+              id="quantity"
+              [(ngModel)]="selectedQuantity"
+              class="mt-2 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            >
+              @for (qty of availableQuantities; track qty) {
+                <option [value]="qty">{{ qty }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Add to Cart Button -->
+          <button
+            (click)="addToCart()"
+            [disabled]="product.stockQuantity === 0"
+            class="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-8 py-3 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            {{ product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart' }}
+          </button>
+
+          <!-- Add to Wishlist Button -->
+          <button
+            (click)="toggleWishlist()"
+            [disabled]="isAddingToWishlist"
+            class="mt-4 flex w-full items-center justify-center rounded-md border-2 px-8 py-3 text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            [class.border-red-500]="isInWishlist"
+            [class.text-red-600]="isInWishlist"
+            [class.hover:bg-red-50]="isInWishlist"
+            [class.border-gray-300]="!isInWishlist"
+            [class.text-gray-700]="!isInWishlist"
+            [class.hover:bg-gray-50]="!isInWishlist"
+          >
+            <svg 
+              class="h-5 w-5 mr-2" 
+              [class.fill-current]="isInWishlist"
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="2" 
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+              />
+            </svg>
+            {{ isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' }}
+          </button>
+        </div>
+
+        <!-- Description & Specs (Full Width Below) -->
+        <div class="mt-10 lg:col-span-3 lg:border-t lg:border-gray-200 lg:pt-10">
+          <!-- Description -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900">Description</h3>
+            <div class="mt-4">
+              <p class="text-base text-gray-600">{{ product.description }}</p>
+            </div>
+          </div>
+
+          <!-- Specifications -->
+          <div class="mt-10">
+            <h3 class="text-lg font-medium text-gray-900">Specifications</h3>
+            <div class="mt-4">
+              <dl class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                @for (spec of specsArray; track spec.key) {
+                  <div class="border-t border-gray-200 pt-4">
+                    <dt class="font-medium text-gray-900">{{ spec.key }}</dt>
+                    <dd class="mt-2 text-sm text-gray-500">{{ spec.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    }
+  </div>
+</div>

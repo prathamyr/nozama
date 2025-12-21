@@ -62,10 +62,17 @@ class UserDAO {
     // Add payment method
     static async addPaymentMethod(userId, paymentData) {
         try {
+            if (paymentData?.isDefault) {
+            await User.updateOne(
+                { _id: userId },
+                { $set: { 'paymentMethods.$[].isDefault': false } }
+            );
+            }
+
             return await User.findByIdAndUpdate(
-                userId,
-                { $push: { paymentMethods: paymentData } },
-                { new: true }
+            userId,
+            { $push: { paymentMethods: paymentData } },
+            { new: true }
             );
         } catch (e) {
             throw new Error(`Error adding payment method: ${e.message}`);
