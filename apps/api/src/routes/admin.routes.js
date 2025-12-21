@@ -1,12 +1,39 @@
-// src/routes/admin.routes.js
 const express = require('express');
 const router = express.Router();
 
 const { requireAuth } = require('../middleware/auth');
 const requireAdmin = require('../middleware/requireAdmin');
 
-// 🔒 Protect everything under /admin
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Protect everything under /admin
 router.use(requireAuth, requireAdmin);
+
+
+// uploads/products directory + storage
+const uploadDir = path.join(process.cwd(), 'uploads', 'products');
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const safeExt = ext || '.jpg';
+    cb(null, `${Date.now()}-${Math.random().toString(16).slice(2)}${safeExt}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
+  fileFilter: (req, file, cb) => {
+    const ok = /^image\//.test(file.mimetype);
+    cb(ok ? null : new Error('Only image uploads are allowed'), ok);
+  }
+});
+
 
 const {
   getAllOrders,
@@ -37,9 +64,18 @@ router.get('/users', getAllUsers);
 // Update user info
 router.put('/users/:userId', updateUser);
 
+router.put('/users/:userId/address', adminController.updateUserAddress);
+router.post('/users/:userId/payment-methods', adminController.addUserPaymentMethod);
+router.delete('/users/:userId/payment-methods/:paymentId', adminController.removeUserPaymentMethod);
+router.get('/users/:userId/orders', adminController.getUserOrders);
+
 // ---- PRODUCT MANAGEMENT ----
-// Create new product
-router.post('/products', createProduct);
+router.post('/products',
+  upload.fields([
+    { name: 'thumbnail', maxCount: 1 },
+    { name: 'gallery', maxCount: 8 }
+  ]),
+  createProduct);
 
 // Update product
 router.put('/products/:productId', updateProduct);

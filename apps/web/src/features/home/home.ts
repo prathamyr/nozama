@@ -8,7 +8,7 @@ import { AuthService } from '../../shared/services/auth.service';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './home.html'
 })
 export class Home implements OnInit {

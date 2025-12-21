@@ -286,7 +286,7 @@ export class Checkout implements OnInit {
       next: (response) => {
         if (response?.ok && response.order) {
           // Success - redirect to order confirmation
-          this.router.navigate(['/home']);
+          this.router.navigate(['/order', response.order._id]);
         } else {
           this.errorMessage = response.error || 'Order failed. Please try again.';
           this.isProcessing = false;

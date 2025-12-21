@@ -8,6 +8,7 @@ const routes = require('./routes');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 const config = require('./config');
+const path = require('path');
 
 const app = express();
 
@@ -24,6 +25,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'] 
 };
 app.use(cors(corsOptions));
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Routes
 app.use('/api', routes);

@@ -20,15 +20,12 @@ export class AdminService {
     };
   }
 
-
   // ========== ORDERS ==========
   
-  // Get all orders
   getAllOrders(userId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/admin/orders`, this.getHeaders(userId));
   }
 
-  // Update order status
   updateOrderStatus(orderId: string, status: string, userId: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/admin/orders/${orderId}/status`, 
       { status }, 
@@ -72,7 +69,6 @@ export class AdminService {
 
   // ========== USERS ==========
   
-  // Get all users
   getAllUsers(userId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/admin/users`, this.getHeaders(userId));
   }
@@ -87,6 +83,29 @@ export class AdminService {
   getUserOrders(targetUserId: string, adminUserId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/admin/users/${targetUserId}/orders`, 
       this.getHeaders(adminUserId)
+    );
+  }
+
+  // FIXED: Added <any> return type to fix TypeScript errors
+  updateUserAddress(userId: string, type: 'billing' | 'shipping', address: any, adminId: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/admin/users/${userId}/address`,
+      { type, address },
+      this.getHeaders(adminId)
+    );
+  }
+
+  // FIXED: Added <any> return type
+  addUserPaymentMethod(userId: string, paymentData: any, adminId: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/admin/users/${userId}/payment-methods`,
+      paymentData,
+      this.getHeaders(adminId)
+    );
+  }
+
+  // FIXED: Added <any> return type
+  removeUserPaymentMethod(userId: string, paymentId: string, adminId: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/admin/users/${userId}/payment-methods/${paymentId}`,
+      this.getHeaders(adminId)
     );
   }
 }

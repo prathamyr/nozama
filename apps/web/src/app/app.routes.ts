@@ -31,6 +31,10 @@ export const routes: Routes = [
         loadComponent: () => import('../features/checkout/checkout').then(m => m.Checkout)
     },
     {
+        path: 'order/:orderId',  // Order confirmation page
+        loadComponent: () => import('../features/order/order').then(m => m.Order)
+    },
+    {
         path: 'profile',  // User profile
         loadComponent: () => import('../features/profile/profile').then(m => m.Profile)
     },

@@ -1,27 +1,25 @@
-<!-- admin.html -->
-<div class="bg-white min-h-full">
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
     <!-- Header -->
-    <div class="border-b border-gray-200 pb-6 mb-8">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Admin Dashboard</h1>
-      <p class="mt-2 text-sm text-gray-600">Welcome, {{ currentUser?.firstname }}</p>
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+      <p class="text-sm text-gray-500">Manage orders, users, inventory, and analytics.</p>
     </div>
 
     <!-- Messages -->
-    @if (successMessage) {
-      <div class="mb-4 rounded-md bg-green-50 p-4 border border-green-200">
-        <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
-      </div>
-    }
-    
     @if (errorMessage) {
       <div class="mb-4 rounded-md bg-red-50 p-4 border border-red-200">
-        <p class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+        <p class="text-sm text-red-700">{{ errorMessage }}</p>
+      </div>
+    }
+    @if (successMessage) {
+      <div class="mb-4 rounded-md bg-green-50 p-4 border border-green-200">
+        <p class="text-sm text-green-700">{{ successMessage }}</p>
       </div>
     }
 
-    <!-- Tab Navigation -->
+    <!-- Tabs -->
     <div class="border-b border-gray-200 mb-6">
       <nav class="-mb-px flex space-x-8">
         <button (click)="switchTab('orders')"
@@ -65,7 +63,7 @@
         <!-- Filters -->
         <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 class="text-sm font-medium text-gray-900 mb-3">Filter Orders</h3>
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <input
               type="text"
               [(ngModel)]="orderFilters.userId"
@@ -73,35 +71,58 @@
               placeholder="Filter by user email"
               class="rounded-md border border-gray-300 px-3 py-2 text-sm"
             >
-            <select [(ngModel)]="orderFilters.status" (change)="applyOrderFilters()"
-                    class="rounded-md border border-gray-300 px-3 py-2 text-sm">
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="failed">Failed</option>
+
+            <select
+              [(ngModel)]="orderFilters.productId"
+              (change)="applyOrderFilters()"
+              class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              <option value="">All Products</option>
+              @for (p of products; track p._id) {
+                <option [value]="p._id">{{ p.name }}</option>
+              }
             </select>
-            <input type="date" [(ngModel)]="orderFilters.dateFrom" (change)="applyOrderFilters()"
-                   placeholder="From Date"
-                   class="rounded-md border border-gray-300 px-3 py-2 text-sm" />
-            <input type="date" [(ngModel)]="orderFilters.dateTo" (change)="applyOrderFilters()"
-                   placeholder="To Date"
-                   class="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+
+            <select
+              [(ngModel)]="orderFilters.status"
+              (change)="applyOrderFilters()"
+              class="rounded-md border border-gray-300 px-3 py-2 text-sm">
+              <option value="">All Status</option>
+              <option value="pending">pending</option>
+              <option value="paid">paid</option>
+              <option value="processing">processing</option>
+              <option value="shipped">shipped</option>
+              <option value="delivered">delivered</option>
+              <option value="cancelled">cancelled</option>
+              <option value="failed">failed</option>
+            </select>
+
+            <input
+              type="date"
+              [(ngModel)]="orderFilters.dateFrom"
+              (change)="applyOrderFilters()"
+              class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+            >
+
+            <input
+              type="date"
+              [(ngModel)]="orderFilters.dateTo"
+              (change)="applyOrderFilters()"
+              class="rounded-md border border-gray-300 px-3 py-2 text-sm"
+            >
+
             <button (click)="clearOrderFilters()"
-                    class="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-              Clear Filters
+                    class="rounded-md bg-gray-200 px-3 py-2 text-sm hover:bg-gray-300">
+              Clear
             </button>
           </div>
         </div>
 
-        <!-- Orders List -->
-        <div class="bg-white shadow overflow-hidden rounded-lg">
+        <!-- Orders table -->
+        <div class="bg-white shadow rounded-lg overflow-hidden">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
@@ -149,7 +170,7 @@
               }
             </tbody>
           </table>
-          
+
           @if (filteredOrders.length === 0) {
             <div class="text-center py-12">
               <p class="text-gray-500">No orders found</p>
@@ -162,18 +183,18 @@
           <div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
               <h3 class="text-lg font-medium mb-4">Order Details</h3>
-              
+
               <div class="space-y-4">
                 <div>
                   <p class="text-sm text-gray-500">Order ID</p>
                   <p class="font-medium">{{ selectedOrder._id }}</p>
                 </div>
-                
+
                 <div>
                   <p class="text-sm text-gray-500">Customer</p>
                   <p class="font-medium">{{ selectedOrder.userEmail }}</p>
                 </div>
-                
+
                 <div>
                   <p class="text-sm text-gray-500">Items Ordered</p>
                   <ul class="mt-2 space-y-2">
@@ -185,7 +206,7 @@
                     }
                   </ul>
                 </div>
-                
+
                 <div class="border-t pt-4">
                   <div class="flex justify-between text-sm mb-1">
                     <span>Subtotal</span>
@@ -205,7 +226,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <button (click)="selectedOrder = null"
                       class="mt-6 w-full bg-gray-200 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-300">
                 Close
@@ -219,7 +240,7 @@
     <!-- USERS TAB -->
     @if (activeTab === 'users') {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         <!-- Users List -->
         <div class="lg:col-span-1">
           <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -260,6 +281,7 @@
                 }
               </div>
 
+              <!-- Basic Profile -->
               <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                   <div>
@@ -286,6 +308,213 @@
                          class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 bg-gray-100" />
                 </div>
 
+                <!-- Shipping Address -->
+                <div class="pt-4 border-t">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2">Shipping Address</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Full Name</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.fullName" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Line 1</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.line1" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Line 2</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.line2" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">City</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.city" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">State</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.state" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">Postal Code</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.postalCode" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">Country</label>
+                      <input [(ngModel)]="selectedUser.shippingAddress.country" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Billing Address -->
+                <div class="pt-4 border-t">
+                  <h4 class="text-sm font-semibold text-gray-900 mb-2">Billing Address</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Full Name</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.fullName" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Line 1</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.line1" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-600">Line 2</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.line2" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">City</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.city" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">State</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.state" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">Postal Code</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.postalCode" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-600">Country</label>
+                      <input [(ngModel)]="selectedUser.billingAddress.country" [disabled]="!userEditMode"
+                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="pt-4 border-t">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-semibold text-gray-900">Payment Methods</h4>
+                    @if (userEditMode) {
+                      <button (click)="addPaymentMethodSlot()"
+                              class="text-sm text-blue-600 hover:text-blue-800">
+                        + Add Card
+                      </button>
+                    }
+                  </div>
+
+                  <div class="space-y-4">
+                    @for (pm of selectedUser.paymentMethods; track $index) {
+                      <div class="rounded-lg border border-gray-200 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                          <div class="text-sm font-medium text-gray-800">
+                            Card {{ $index + 1 }}
+                            @if (pm.isDefault) {
+                              <span class="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                                Default
+                              </span>
+                            }
+                          </div>
+
+                          @if (userEditMode) {
+                            <div class="flex items-center gap-3">
+                              <button (click)="setDefaultPaymentMethod($index)"
+                                      class="text-xs text-gray-700 hover:text-gray-900">
+                                Make default
+                              </button>
+                              <button (click)="removePaymentMethodSlot($index)"
+                                      class="text-xs text-red-600 hover:text-red-800">
+                                Remove
+                              </button>
+                            </div>
+                          }
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label class="block text-xs font-medium text-gray-600">Brand</label>
+                            <input [(ngModel)]="pm.cardBrand" [disabled]="!userEditMode"
+                                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-gray-600">Label</label>
+                            <input [(ngModel)]="pm.label" [disabled]="!userEditMode"
+                                   placeholder="e.g., Personal / Work"
+                                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                          </div>
+
+                          <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-600">Card Number</label>
+                            <input [(ngModel)]="pm.cardNumber" [disabled]="!userEditMode"
+                                   placeholder="Digits only (last4 auto-derived)"
+                                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                          </div>
+
+                          <div>
+                            <label class="block text-xs font-medium text-gray-600">Expiry Month</label>
+                            <input type="number" [(ngModel)]="pm.expiryMonth" [disabled]="!userEditMode"
+                                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-gray-600">Expiry Year</label>
+                            <input type="number" [(ngModel)]="pm.expiryYear" [disabled]="!userEditMode"
+                                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 disabled:bg-gray-100" />
+                          </div>
+                        </div>
+
+                        @if (!userEditMode) {
+                          <div class="mt-3 text-xs text-gray-500">
+                            Last4: {{ pm.last4 || '(not set)' }}
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Purchase History -->
+                <div class="pt-4 border-t">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-semibold text-gray-900">Purchase History</h4>
+                    <button (click)="loadSelectedUserOrders()"
+                            class="text-sm text-blue-600 hover:text-blue-800">
+                      Refresh
+                    </button>
+                  </div>
+
+                  @if (isUserOrdersLoading) {
+                    <p class="text-sm text-gray-500">Loading orders...</p>
+                  } @else {
+                    @if (selectedUserOrders.length === 0) {
+                      <p class="text-sm text-gray-500">No orders found for this user.</p>
+                    } @else {
+                      <div class="overflow-hidden rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                          <thead class="bg-gray-50">
+                            <tr>
+                              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
+                              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody class="divide-y divide-gray-200 bg-white">
+                            @for (o of selectedUserOrders; track o._id) {
+                              <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-2 text-sm font-mono text-gray-700">{{ o._id.substring(0, 8) }}...</td>
+                                <td class="px-4 py-2 text-sm text-gray-700">{{ o.createdAt | date:'short' }}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700">${{ (o.totalAmount || 0).toFixed(2) }}</td>
+                                <td class="px-4 py-2 text-sm text-gray-700">{{ o.orderStatus }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  }
+                </div>
+
                 @if (userEditMode) {
                   <div class="flex gap-2 pt-4">
                     <button (click)="saveUser()"
@@ -308,7 +537,6 @@
         </div>
       </div>
     }
-
     <!-- INVENTORY TAB -->
     @if (activeTab === 'inventory') {
       <div>
@@ -320,38 +548,220 @@
           </button>
         </div>
 
-        <!-- New Product Form -->
-        @if (newProductMode) {
-          <div class="mb-6 bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium mb-4">Create New Product</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <input type="text" [(ngModel)]="newProduct.name" placeholder="Product Name *"
-                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
-              <input type="text" [(ngModel)]="newProduct.description" placeholder="Description"
-                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
-              <input type="text" [(ngModel)]="newProduct.category" placeholder="Category"
-                     class="rounded-md border border-gray-300 px-3 py-2" />
-              <input type="text" [(ngModel)]="newProduct.brand" placeholder="Brand"
-                     class="rounded-md border border-gray-300 px-3 py-2" />
-              <input type="number" [(ngModel)]="newProduct.price" placeholder="Price"
-                     class="rounded-md border border-gray-300 px-3 py-2" />
-              <input type="number" [(ngModel)]="newProduct.stockQuantity" placeholder="Stock Quantity"
-                     class="rounded-md border border-gray-300 px-3 py-2" />
-              <input type="text" [(ngModel)]="newProduct.thumbnailImg" placeholder="Image URL *"
-                     class="col-span-2 rounded-md border border-gray-300 px-3 py-2" />
+    <!-- New Product Form -->
+    
+    @if (newProductMode) {
+      <div class="mb-8 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-6 py-4">
+          <div>
+            <h3 class="text-base font-semibold text-gray-900">Create New Product (Will not persist)</h3>
+            <p class="mt-0.5 text-sm text-gray-500">Fill out the details below.</p>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <!-- Name -->
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium text-gray-700">Product Name <span class="text-red-500">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="newProduct.name"
+                placeholder="e.g., MacBook Pro 14”"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
             </div>
-            <div class="flex gap-2 mt-4">
-              <button (click)="createProduct()"
-                      class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                Create Product
-              </button>
-              <button (click)="cancelProductEdit()"
-                      class="flex-1 bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300">
-                Cancel
-              </button>
+
+            <!-- Description -->
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium text-gray-700">Description</label>
+              <input
+                type="text"
+                [(ngModel)]="newProduct.description"
+                placeholder="Short description"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Category</label>
+              <input
+                type="text"
+                [(ngModel)]="newProduct.category"
+                placeholder="e.g., Laptops"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+            </div>
+
+            <!-- Brand -->
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Brand</label>
+              <input
+                type="text"
+                [(ngModel)]="newProduct.brand"
+                placeholder="e.g., Apple"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+            </div>
+
+            <!-- Price -->
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Price</label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-gray-400">$</span>
+                <input
+                  type="number"
+                  [(ngModel)]="newProduct.price"
+                  placeholder="0"
+                  class="w-full rounded-lg border border-gray-300 bg-white pl-7 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                        focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- Stock -->
+            <div>
+              <label class="mb-1 block text-sm font-medium text-gray-700">Stock Quantity</label>
+              <input
+                type="number"
+                [(ngModel)]="newProduct.stockQuantity"
+                placeholder="0"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+            </div>
+
+            <!-- Thumbnail upload -->
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium text-gray-700">Thumbnail (upload)</label>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onThumbnailSelected($event)"
+                class="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm
+                      file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700
+                      hover:file:bg-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+
+              @if (thumbnailPreviewUrl) {
+                <div class="mt-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <img [src]="thumbnailPreviewUrl" class="h-16 w-16 rounded-lg border border-gray-200 object-cover" />
+                  <div class="text-sm text-gray-600">
+                    <div class="font-medium text-gray-800">Preview</div>
+                    <div class="text-xs text-gray-500">This will be shown as the product thumbnail.</div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Optional: URL fallback -->
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium text-gray-700">Thumbnail URL (optional)</label>
+              <input
+                type="text"
+                [(ngModel)]="newProduct.thumbnailImg"
+                placeholder="https://..."
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                      focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+            </div>
+
+            <!-- Gallery upload -->
+            <div class="md:col-span-2">
+              <label class="mb-1 block text-sm font-medium text-gray-700">Gallery images <span class="text-gray-400">(up to 8)</span></label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                (change)="onGallerySelected($event)"
+                class="block w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm
+                      file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700
+                      hover:file:bg-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+              />
+
+              @if (galleryPreviewUrls.length > 0) {
+                <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div class="mb-2 text-xs font-medium text-gray-600">Preview</div>
+                  <div class="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+                    @for (url of galleryPreviewUrls; track url) {
+                      <img [src]="url" class="h-14 w-14 rounded-lg border border-gray-200 object-cover" />
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Specs editor -->
+            <div class="md:col-span-2">
+              <div class="mb-2 flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">Specs</label>
+                <button
+                  type="button"
+                  (click)="addSpecRow()"
+                  class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm
+                        hover:bg-gray-50 active:scale-[0.99]"
+                >
+                  <span class="text-base leading-none">+</span> Add spec
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                @for (row of specRows; track row._id) {
+                  <div class="grid grid-cols-1 gap-2 sm:grid-cols-12">
+                    <input
+                      class="sm:col-span-5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                            focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+                      [(ngModel)]="row.key"
+                      placeholder="Key (e.g., Processor)"
+                    />
+                    <input
+                      class="sm:col-span-6 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm
+                            focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none"
+                      [(ngModel)]="row.value"
+                      placeholder="Value (e.g., M3 Pro)"
+                    />
+                    <button
+                      type="button"
+                      (click)="removeSpecRow(row._id)"
+                      class="sm:col-span-1 inline-flex h-10 w-full items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm
+                            hover:bg-gray-50 hover:text-gray-700 active:scale-[0.99]"
+                      title="Remove spec"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                }
+              </div>
             </div>
           </div>
-        }
+
+          <!-- Footer buttons -->
+          <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+            <button
+              (click)="createProduct()"
+              class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm
+                    hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 outline-none active:scale-[0.99]"
+            >
+              Create Product
+            </button>
+            <button
+              (click)="cancelProductEdit()"
+              class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm
+                    hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 outline-none active:scale-[0.99]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
         <!-- Products Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -491,6 +901,5 @@
         </div>
       </div>
     }
-
-  </main>
+    
 </div>
