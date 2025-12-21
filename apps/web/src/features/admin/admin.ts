@@ -1,4 +1,3 @@
-// admin.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -121,6 +120,12 @@ export class Admin implements OnInit, OnDestroy {
   applyOrderFilters() {
     this.filteredOrders = this.orders.filter(order => {
       let match = true;
+      
+      if (this.orderFilters.userId) {
+        const q = this.orderFilters.userId.trim().toLowerCase();
+        const email = (order.userEmail || '').toLowerCase();
+        if (!email.includes(q)) match = false;
+      }
       
       if (this.orderFilters.status && order.orderStatus !== this.orderFilters.status) {
         match = false;
