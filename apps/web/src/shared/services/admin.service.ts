@@ -108,4 +108,11 @@ export class AdminService {
       this.getHeaders(adminId)
     );
   }
+
+  updateUserPaymentMethod(userId: string, paymentId: string, paymentData: any, adminId: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/admin/users/${userId}/payment-methods/${paymentId}`,
+      paymentData,
+      this.getHeaders(adminId)
+    );
+  }
 }

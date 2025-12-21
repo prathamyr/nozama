@@ -408,26 +408,60 @@ export class Admin implements OnInit, OnDestroy {
   }
 
   private savePaymentMethods() {
-    // Get original and current payment methods
     const originalPMs = this.originalUserSnapshot?.paymentMethods || [];
     const currentPMs = this.selectedUser.paymentMethods || [];
 
-    // Find payment methods to remove (in original but not in current)
+    const byIdOriginal = new Map<string, any>(
+      originalPMs.filter((pm: any) => pm?._id).map((pm: any) => [pm._id, pm])
+    );
+
+    // removals
     const currentIds = new Set(currentPMs.map((pm: any) => pm._id).filter(Boolean));
     const toRemove = originalPMs.filter((pm: any) => pm._id && !currentIds.has(pm._id));
 
-    // Find new payment methods (no _id means they're new)
+    // additions
     const toAdd = currentPMs.filter((pm: any) => !pm._id && pm.cardNumber);
 
-    // Process removals first, then additions
+    // updates (existing _id, but changed fields)
+    const fields = ['cardBrand', 'label', 'cardNumber', 'expiryMonth', 'expiryYear', 'isDefault'];
+    const toUpdate = currentPMs
+      .filter((pm: any) => pm?._id)
+      .filter((pm: any) => {
+        const old = byIdOriginal.get(pm._id);
+        if (!old) return false;
+        return fields.some(f => (old?.[f] ?? null) !== (pm?.[f] ?? null));
+      });
+
     this.processPaymentRemovals(toRemove, () => {
       this.processPaymentAdditions(toAdd, () => {
-        // All done - reload and show success
-        this.successMessage = 'User updated successfully';
-        this.loadUsers();
-        this.userEditMode = false;
-        this.loadSelectedUserOrders();
+        this.processPaymentUpdates(toUpdate, () => {
+          this.successMessage = 'User updated successfully';
+          this.loadUsers();
+          this.userEditMode = false;
+          this.loadSelectedUserOrders();
+        });
       });
+    });
+  }
+
+  private processPaymentUpdates(toUpdate: any[], onComplete: () => void) {
+    if (toUpdate.length === 0) {
+      onComplete();
+      return;
+    }
+
+    const pm = toUpdate[0];
+    this.adminService.updateUserPaymentMethod(
+      this.selectedUser._id,
+      pm._id,
+      pm,
+      this.currentUser._id
+    ).subscribe({
+      next: () => this.processPaymentUpdates(toUpdate.slice(1), onComplete),
+      error: (err) => {
+        console.error('Update payment method failed:', err);
+        this.processPaymentUpdates(toUpdate.slice(1), onComplete);
+      }
     });
   }
 

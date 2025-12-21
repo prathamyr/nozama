@@ -51,7 +51,8 @@ const {
   getAllInventoryLogs,
   getProductInventoryLogs,
   getAllProducts,
-  updateOrderStatus
+  updateOrderStatus,
+  updateUserPaymentMethod
 } = require('../controllers/admin.controller');
 
 // ---- ORDER MANAGEMENT ----
@@ -66,6 +67,7 @@ router.put('/users/:userId/address', updateUserAddress);
 router.post('/users/:userId/payment-methods', addUserPaymentMethod);
 router.delete('/users/:userId/payment-methods/:paymentId', removeUserPaymentMethod);
 router.get('/users/:userId/orders', getUserOrders);
+router.put('/users/:userId/payment-methods/:paymentId', updateUserPaymentMethod);
 
 // ---- PRODUCT MANAGEMENT ----
 router.post('/products',

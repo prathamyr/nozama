@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { OrderService } from '../../shared/services/order.service';
+import { CartService } from '../../shared/services/cart.service';
 
 @Component({
   selector: 'app-order',
@@ -18,10 +19,13 @@ export class Order implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private cartService: CartService
   ) {}
 
   ngOnInit() {
+    // Clear cart state so navbar shows empty cart
+    this.cartService.clearCart();
     const orderId = this.route.snapshot.paramMap.get('orderId');
     if (!orderId) {
       this.router.navigate(['/home']);

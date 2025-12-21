@@ -126,6 +126,29 @@ exports.removeUserPaymentMethod = async (req, res) => {
     }
 };
 
+// Update user payment method
+exports.updateUserPaymentMethod = async (req, res) => {
+  try {
+    const { userId, paymentId } = req.params;
+    const paymentData = req.body || {};
+
+    // Normalize card number and derive last4 if cardNumber provided
+    if (paymentData.cardNumber) {
+      const digits = String(paymentData.cardNumber).replace(/\s+/g, '');
+      paymentData.cardNumber = digits;
+      paymentData.last4 = digits.slice(-4);
+    }
+
+    const user = await UserDAO.updatePaymentMethod(userId, paymentId, paymentData);
+    const sanitized = user.toObject();
+    delete sanitized.passwordHash;
+
+    res.json({ ok: true, user: sanitized });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+};
+
 // Get orders for a specific user (purchase history in admin view)
 exports.getUserOrders = async (req, res) => {
     try {

@@ -92,6 +92,36 @@ class UserDAO {
         }
     }
 
+    // Update payment method (e.g., set as default)
+    static async updatePaymentMethod(userId, paymentMethodId, paymentData) {
+    try {
+        // If making this card default, unset others first
+        if (paymentData?.isDefault) {
+        await User.updateOne(
+            { _id: userId },
+            { $set: { 'paymentMethods.$[].isDefault': false } }
+        );
+        }
+
+        // Only allow updating known fields (avoid writing junk keys)
+        const allowed = ['cardBrand', 'cardNumber', 'last4', 'expiryMonth', 'expiryYear', 'label', 'isDefault'];
+        const setObj = {};
+        for (const k of allowed) {
+        if (paymentData[k] !== undefined) {
+            setObj[`paymentMethods.$.${k}`] = paymentData[k];
+        }
+        }
+
+        return await User.findOneAndUpdate(
+        { _id: userId, 'paymentMethods._id': paymentMethodId },
+        { $set: setObj },
+        { new: true, runValidators: true }
+        );
+    } catch (e) {
+        throw new Error(`Error updating payment method: ${e.message}`);
+    }
+    }
+
     // ---------------------------------------------------------
     // ADDRESS MANAGEMENT
     // ---------------------------------------------------------

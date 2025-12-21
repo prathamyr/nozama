@@ -7,35 +7,35 @@ import { Login } from '../features/login/login';
 
 export const routes: Routes = [
     {
-        path: '',
+        path: '', // Landing page
         component: landingPage,
     },
     {
-        path: 'home',
+        path: 'home', // Home/dashboard page
         component: Home,
     },
     {
-        path: 'products',
+        path: 'products', // Product listing page
         component: Products,
     },
     {
-        path: 'product/:id',  // Product detail page
+        path: 'product/:id', // Product detail page
         loadComponent: () => import('../features/product-overview/product-overview').then(m => m.ProductOverview)
     },
     {
-        path: 'cart',  // Shopping cart
+        path: 'cart', // Shopping cart page
         loadComponent: () => import('../features/cart/cart').then(m => m.Cart)
     },
     {
-        path: 'checkout',  // Checkout page
+        path: 'checkout', // Checkout page
         loadComponent: () => import('../features/checkout/checkout').then(m => m.Checkout)
     },
     {
-        path: 'order/:orderId',  // Order confirmation page
+        path: 'order-confirmation/:orderId', // Order confirmation page
         loadComponent: () => import('../features/order/order').then(m => m.Order)
     },
     {
-        path: 'profile',  // User profile
+        path: 'profile', // User profile and order history
         loadComponent: () => import('../features/profile/profile').then(m => m.Profile)
     },
     {
@@ -45,9 +45,8 @@ export const routes: Routes = [
     {
         path: 'admin',
         component: Admin,
-     },
-    // {
-    //     path: '**',  // 404 - Not Found
-    //     loadComponent: () => import('../features/not-found/not-found').then(m => m.NotFound)
-    // }
+    }
+    // Additional routes can be added here 
+    // { path: 'about', component: About }, etc.
+
 ];

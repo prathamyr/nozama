@@ -49,9 +49,7 @@ export class Checkout implements OnInit {
 
   sameAsShipping = true;
 
-
-
-  // NEW: saved payment methods + selector
+  // Saved payment methods
   savedPaymentMethods: any[] = [];
   selectedPaymentId: string | null = null;
   paymentMode: 'saved' | 'new' = 'new';
@@ -77,12 +75,11 @@ export class Checkout implements OnInit {
     }
 
     this.loadCart();
-    this.prefillFromProfile(); // NEW
+    this.prefillFromProfile();
   }
 
   private mergeAddress(base: any, saved: any): any {
     if (!saved) return base;
-    // Drop addressType if it exists on User model; checkout doesn't need it
     const { addressType, ...rest } = saved || {};
     return { ...base, ...rest, country: rest.country || base.country };
   }
@@ -109,7 +106,6 @@ export class Checkout implements OnInit {
             this.billingAddress = { ...this.shippingAddress };
           }
         } else {
-          // If no billing saved, default to "same as shipping"
           this.sameAsShipping = true;
           this.billingAddress = { ...this.shippingAddress };
         }
@@ -128,7 +124,6 @@ export class Checkout implements OnInit {
         }
       },
       error: (err) => {
-        // Don't block checkout if profile fetch fails; just don't prefill.
         console.error('Prefill profile failed:', err);
       }
     });
@@ -139,20 +134,19 @@ export class Checkout implements OnInit {
     if (!pm) return;
 
     this.paymentMode = 'saved';
-
     this.savedCardLast4 = pm.last4 || '';
 
     this.billingInfo.cardBrand = pm.cardBrand || 'Visa';
     this.billingInfo.cardExpiryMonth = pm.expiryMonth ? String(pm.expiryMonth).padStart(2, '0') : '';
     this.billingInfo.cardExpiryYear = pm.expiryYear ? String(pm.expiryYear).slice(-2) : '';
 
-    // IMPORTANT:
-    // We still send a cardNumber so your existing validation + payment mock can work,
-    // but we will NOT bind this to the visible input in "saved" mode.
+    // Mask card number
+    // We only store last4, so we mask the rest
+    // e.g. if last4 is 1234, we set cardNumber to 0000000000001234
     const last4 = (pm.last4 || '').toString().slice(-4);
     this.billingInfo.cardNumber = last4 ? `000000000000${last4}` : '0000000000000000';
 
-    // Require re-entry for security / realism
+    // require CVC for security
     this.billingInfo.cardCVC = '';
   }
 
@@ -173,7 +167,7 @@ export class Checkout implements OnInit {
   useSavedCard() {
     this.paymentMode = 'saved';
 
-    // If nothing selected yet, select default/first and apply it
+    //if nothing selected, pick default or first and apply
     if (!this.selectedPaymentId && this.savedPaymentMethods.length > 0) {
       const def = this.savedPaymentMethods.find(p => p.isDefault) || this.savedPaymentMethods[0];
       this.selectedPaymentId = def._id;
@@ -184,7 +178,6 @@ export class Checkout implements OnInit {
     }
   }
 
-  // Load cart
   loadCart() {
     this.cartService.getCart(this.currentUser._id).subscribe({
       next: (response) => {
@@ -192,7 +185,7 @@ export class Checkout implements OnInit {
           this.cart = response.cart;
           this.totals = this.cartService.calculateTotals(this.cart);
           
-          // Check if cart is empty
+          // Redirect to cart if empty
           if (!this.cart.items || this.cart.items.length === 0) {
             this.router.navigate(['/cart']);
           }
@@ -202,14 +195,13 @@ export class Checkout implements OnInit {
     });
   }
 
-  // Toggle same as shipping - FIX: sync addresses properly
+  // Toggle billing address same as shipping -> fix: sync billing address
   toggleSameAsShipping(checked: boolean) {
     if (checked) {
       this.billingAddress = { ...this.shippingAddress };
     }
   } 
 
-  // Validate form
   isFormValid(): boolean {
     const shipping = this.shippingAddress;
     const billing = this.sameAsShipping ? shipping : this.billingAddress;
@@ -235,26 +227,23 @@ export class Checkout implements OnInit {
   }
 
   isCardExpired(month: string, year: string): boolean {
-  const expMonth = parseInt(month, 10);
-  const expYear = 2000 + parseInt(year, 10); // "25" → 2025
-  
-  // Validate month range
-  if (expMonth < 1 || expMonth > 12) {
-    return true; // Invalid month = expired
-  }
-  
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-  
-  // Card expires at END of month, not beginning
-  if (expYear < currentYear) return true;
-  if (expYear === currentYear && expMonth < currentMonth) return true;
-  
-  return false;
+    const expMonth = parseInt(month, 10);
+    const expYear = 2000 + parseInt(year, 10);
+    
+    if (expMonth < 1 || expMonth > 12) {
+      return true;
+    }
+    
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    
+    if (expYear < currentYear) return true;
+    if (expYear === currentYear && expMonth < currentMonth) return true;
+    
+    return false;
   }
 
-  // Place order
   placeOrder() {
     if (!this.isFormValid()) {
       this.errorMessage = 'Please fill in all required fields.';
@@ -263,8 +252,8 @@ export class Checkout implements OnInit {
 
     const month = parseInt(this.billingInfo.cardExpiryMonth, 10);
     if (month < 1 || month > 12) {
-    this.errorMessage = 'Invalid expiry month. Enter 01-12.';
-    return;
+      this.errorMessage = 'Invalid expiry month. Enter 01-12.';
+      return;
     }
 
     if (this.isCardExpired(this.billingInfo.cardExpiryMonth, this.billingInfo.cardExpiryYear)) {
@@ -285,8 +274,10 @@ export class Checkout implements OnInit {
     this.orderService.createOrder(orderData).subscribe({
       next: (response) => {
         if (response?.ok && response.order) {
-          // Success - redirect to order confirmation
-          this.router.navigate(['/order', response.order._id]);
+          // Clear cart state BEFORE navigating so navbar updates immediately
+          this.cartService.clearCart();
+          // Redirect to order confirmation
+          this.router.navigate(['/order-confirmation', response.order._id]);
         } else {
           this.errorMessage = response.error || 'Order failed. Please try again.';
           this.isProcessing = false;
@@ -295,7 +286,6 @@ export class Checkout implements OnInit {
       error: (err) => {
         console.error('Order error:', err);
         
-        // Check if payment was declined (402 status)
         if (err.status === 402) {
           this.errorMessage = 'Payment declined. Please check your card details and try again.';
         } else {
