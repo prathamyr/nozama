@@ -11,7 +11,6 @@ const fs = require('fs');
 // Protect everything under /admin
 router.use(requireAuth, requireAdmin);
 
-
 // uploads/products directory + storage
 const uploadDir = path.join(process.cwd(), 'uploads', 'products');
 fs.mkdirSync(uploadDir, { recursive: true });
@@ -27,19 +26,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ok = /^image\//.test(file.mimetype);
     cb(ok ? null : new Error('Only image uploads are allowed'), ok);
   }
 });
 
-
+// Import all controller functions
 const {
   getAllOrders,
   filterOrders,
   getAllUsers,
   updateUser,
+  updateUserAddress,
+  addUserPaymentMethod,
+  removeUserPaymentMethod,
+  getUserOrders,
   createProduct,
   updateProduct,
   deactivateProduct,
@@ -47,27 +50,22 @@ const {
   createInventoryLog,
   getAllInventoryLogs,
   getProductInventoryLogs,
-  getAllProducts
+  getAllProducts,
+  updateOrderStatus
 } = require('../controllers/admin.controller');
 
 // ---- ORDER MANAGEMENT ----
-// Get all orders
 router.get('/orders', getAllOrders);
-
-// Filter orders (by user, product, date)
 router.get('/orders/filter', filterOrders);
+router.patch('/orders/:orderId/status', updateOrderStatus);
 
 // ---- USER MANAGEMENT ----
-// Get all users
 router.get('/users', getAllUsers);
-
-// Update user info
 router.put('/users/:userId', updateUser);
-
-router.put('/users/:userId/address', adminController.updateUserAddress);
-router.post('/users/:userId/payment-methods', adminController.addUserPaymentMethod);
-router.delete('/users/:userId/payment-methods/:paymentId', adminController.removeUserPaymentMethod);
-router.get('/users/:userId/orders', adminController.getUserOrders);
+router.put('/users/:userId/address', updateUserAddress);
+router.post('/users/:userId/payment-methods', addUserPaymentMethod);
+router.delete('/users/:userId/payment-methods/:paymentId', removeUserPaymentMethod);
+router.get('/users/:userId/orders', getUserOrders);
 
 // ---- PRODUCT MANAGEMENT ----
 router.post('/products',
@@ -75,28 +73,16 @@ router.post('/products',
     { name: 'thumbnail', maxCount: 1 },
     { name: 'gallery', maxCount: 8 }
   ]),
-  createProduct);
-
-// Update product
+  createProduct
+);
 router.put('/products/:productId', updateProduct);
-
-// Deactivate product (soft delete)
 router.delete('/products/:productId', deactivateProduct);
-
-// ---- INVENTORY MANAGEMENT ----
-// Update product inventory
-router.put('/inventory/:productId', updateInventory);
-
-// DEBUGGING:Get all products (for inventory management)
 router.get('/products', getAllProducts);
 
-// Create inventory log
+// ---- INVENTORY MANAGEMENT ----
+router.put('/inventory/:productId', updateInventory);
 router.post('/inventory-logs', createInventoryLog);
-
-// Get all inventory logs
 router.get('/inventory-logs', getAllInventoryLogs);
-
-// Get logs for specific product
 router.get('/inventory-logs/product/:productId', getProductInventoryLogs);
 
 module.exports = router;
